@@ -105,6 +105,11 @@ c
       N_iter = 100
       write(6,*) 'Enter N_iter'
       read(5,*) N_iter
+      if (N_iter.gt.maxiter) then
+         write(6,*) 'ERROR: N_iter =',N_iter,' exceeds maxiter =',
+     c        maxiter
+         stop
+      endif
       write(6,*) N_iter
 c     
 c     Set flags for input or output of bidiagonal factorization

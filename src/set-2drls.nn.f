@@ -51,6 +51,10 @@ c
    10 read (10,*,end=15) lker(i),nker(i),frqker(i),mker(i),
      *                   itker(i),it1ker(i),splker(i), errker(i)
       i=i+1
+      if (i.gt.maxnlm) then
+         write(6,*) 'ERROR: Too many modes, maxnlm =',maxnlm
+         stop
+      endif
       go to 10
 c
    15 nkers=i-1

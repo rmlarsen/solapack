@@ -157,7 +157,7 @@ c
                      t1 = dsqrt(1.0+t**2)
                      lam = lambda*t1
                      c = 1.0/t1
-                     s = c*t1
+                     s = c*t
                   endif
                endif
 c
@@ -165,12 +165,12 @@ c     end inlined call givens(lambda,gamma,c,s)
 c
                work(cc2+i) = c
                work(ss2+i) = s
-c               lam = c*lambda - s*gamma            
+c               lam = c*lambda - s*gamma
             endif
          enddo
-         
+
 c
-c     Apply the orthogonal transformations in parallel 
+c     Apply the orthogonal transformations in parallel
 c     to the right-hand sides.
 c
 c$doacross  local(i,j,a,b,t1,t),

@@ -11,7 +11,8 @@
 /* g77's rand() returned a double precision random number in [0,1). */
 double rand_(void)
 {
-    return (double)random() / (double)RAND_MAX;
+    /* random() returns [0, 2^31-1] on POSIX systems. */
+    return (double)random() / (2147483647.0 + 1.0);
 }
 
 /* g77's dtime(tarray) returned elapsed CPU time since last call and
@@ -20,7 +21,12 @@ float dtime_(float tarray[2])
 {
     static struct tms last = {0, 0, 0, 0};
     struct tms now;
-    float tick = 1.0f / (float)sysconf(_SC_CLK_TCK);
+    long ticks_per_sec = sysconf(_SC_CLK_TCK);
+    float tick;
+
+    if (ticks_per_sec <= 0)
+        ticks_per_sec = 100; /* fallback */
+    tick = 1.0f / (float)ticks_per_sec;
 
     times(&now);
     tarray[0] = (float)(now.tms_utime - last.tms_utime) * tick;

@@ -61,6 +61,7 @@ c
      c     M_kers,N_points,N_rad,M_nl,N_theta,M_lm,inl,ilm,kernelfile)
       if (np.ne.N_points) then
          write(*,120) np,N_points,meshfile,kernelfile
+         stop 'Mesh/kernel point count mismatch'
       endif
 c     
 c     Read mode-set.

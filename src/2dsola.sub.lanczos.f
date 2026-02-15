@@ -324,8 +324,8 @@ cc$PAR DOALL shared(solnorm), readonly(n,target)
             enddo
          endif
          do i=1,N_targets
-            resnorm(i) = sqrt(resnorm(i))
-            solnorm(i) = sqrt(solnorm(i))
+            resnorm(i) = sqrt(max(0d0,resnorm(i)))
+            solnorm(i) = sqrt(max(0d0,solnorm(i)))
          enddo
       endif
       return

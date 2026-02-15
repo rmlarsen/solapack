@@ -720,9 +720,10 @@ c     as single precision version, but is distinguished by its file name
 c     
 c     
       implicit double precision(a-h,o-z)
+      save n
       dimension zi(*),y(*),yi(*),a(4)
       data n/-1/
-c     
+c
       il=0
       go to 1
       entry dlir1(z,zi,y,yi,ii,id,nt,l,inter)

@@ -103,7 +103,7 @@ c
       integer iflog,ifker, ifmesh, ifdata, ifcovar, ifsol, ifavker, 
      *     ifcoeff, ifbidiag, iftranstarget, iftransrhs, ifamdl,
      *     iflcurve, ifres,ifrestrict,ifconv,ifcorr
-      parameter(iflog=27, ifker=2, ifmesh=3, ifdata=4, ifsol=10)
+      parameter(iflog=28, ifker=2, ifmesh=3, ifdata=4, ifsol=10)
       parameter(ifavker=11, ifcoeff=12, ifres=13, ifconv=14)
       parameter(ifrestrict=15,ifcorr=16,ifbidiag=21, iftranstarget=22)
       parameter(iftransrhs=23, iflcurve=24, ifamdl=25, ifcovar=26)

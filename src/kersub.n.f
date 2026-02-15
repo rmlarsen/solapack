@@ -58,6 +58,10 @@ c           1 for adding extra gridpoint
       read (11,*) nskip, nrsmsh
       read (11,*) modelfile
       read (11,*) nfiles
+      if (nfiles.gt.10) then
+         write(6,*) 'ERROR: nfiles =',nfiles,' exceeds limit of 10'
+         stop
+      endif
       do 10,i=1,nfiles
         read (11,'(A80)') filename(i)
  10   continue
@@ -553,6 +557,9 @@ c         w1(j,3)=weights(j)*(xj2**2-2./3.*xj2+1./21.)
  210    continue
       else
       end if
+      do 215,i=0,maxl
+        setl(i)=.false.
+ 215  continue
       do 220,i=1,nlm
         setl(llm(i))=.true.
  220  continue

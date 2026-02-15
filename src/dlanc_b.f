@@ -168,7 +168,13 @@ c
          alpha(it) = pdnrm2(n,v(1,it),1)
 
          treo = treo + dtime(tarr)
-         reorth_time = reorth_time + stoptimer(timenum1)         
+         reorth_time = reorth_time + stoptimer(timenum1)
+         if (alpha(it).eq.0d0) then
+            write(*,*) 'DLANC_B: Lanczos breakdown, alpha=0 at step',
+     c           it
+            ITER = it - 1
+            return
+         endif
          call pdscal(n,1D0/alpha(it),v(1,it),1)
 
 c     ******************************************************
@@ -192,6 +198,12 @@ c     *********** REORTHOGONALIZATION OF U_IT ***************
 
          treo=treo+dtime(tarr)
          reorth_time = reorth_time + stoptimer(timenum1)
+         if (beta(it).eq.0d0) then
+            write(*,*) 'DLANC_B: Lanczos breakdown, beta=0 at step',
+     c           it
+            ITER = it
+            return
+         endif
          call pdscal(m,1D0/beta(it),u(1,it+1),1)
       enddo         
 

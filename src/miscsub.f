@@ -668,6 +668,7 @@ c     most of the computation is performed in single precision
 c
 c
 c
+      save n
       dimension zi(1),y(1),yi(1),a(4)
       data n/-1/
 c

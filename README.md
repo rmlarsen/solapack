@@ -55,17 +55,17 @@ cmake -B build -DBLA_VENDOR=Intel10_64lp  # MKL
 ## Running the example
 
 See the `example/` directory and the original [README](README.orig) for
-details on the configuration files and data formats. The basic workflow is:
+details on the configuration files and data formats.
+
+The configuration files use `#` comment lines that must be stripped before
+passing to the programs. The basic workflow is:
 
 ```bash
-# 1. Set up kernel matrix from mode eigenfunctions
-./build/set-2drls < example/set-2drls.cfg
-
-# 2. Perform 2D SOLA inversion
-./build/2dsola < example/2dsola.cfg
+cd example
+grep -v '^#' set-2drls.cfg | ../build/set-2drls
+grep -v '^#' 2dsola.cfg | ../build/2dsola
 ```
 
-The programs read their parameters from stdin via configuration files.
 Edit the paths in the `.cfg` files to point to your eigenfunction and
 model data files before running.
 
@@ -74,7 +74,7 @@ model data files before running.
 The eigenfunction (`amde.1`) and model (`amdl.l5bi.d.15`) data files
 are binary and are available in both big-endian (Sun/SPARC, SGI/MIPS)
 and little-endian (Intel, Alpha) formats. These files were originally
-hosted at `http://sun.stanford.edu/~rmunk/SOLApack/` but are no longer
+hosted at `http://quake.stanford.edu/~rmunk/SOLApack/` but are no longer
 available from that location.
 
 ## Data formats

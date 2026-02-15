@@ -15,6 +15,16 @@ option(SOLAPACK_USE_RISC_MGS
 # Find LAPACK (also provides BLAS)
 find_package(LAPACK REQUIRED)
 
+# Fortran include files are not compiled directly; mark them header-only
+# so they appear in IDE project views and trigger rebuilds when changed.
+set(FORTRAN_INCLUDES
+  src/2dsola.n.include.f
+  src/include1.f
+  src/include1.n.f
+  src/include2.f
+)
+set_source_files_properties(${FORTRAN_INCLUDES} PROPERTIES HEADER_FILE_ONLY TRUE)
+
 # --- Linpack static library ---
 add_library(linpack STATIC
   linpack/dgeco.f
@@ -39,6 +49,7 @@ add_library(solapack_common OBJECT
   src/avker.f
   src/covariance.f
   src/compat.c
+  src/2dsola.n.include.f
 )
 target_include_directories(solapack_common PRIVATE src)
 
@@ -51,10 +62,13 @@ add_executable(set-2drls
   src/miscsub.f
   src/ran.f
   src/plm.f
+  src/include1.f
+  src/include1.n.f
+  src/include2.f
   $<TARGET_OBJECTS:solapack_common>
 )
 target_include_directories(set-2drls PRIVATE src)
-target_link_libraries(set-2drls PRIVATE linpack ${LAPACK_LIBRARIES})
+target_link_libraries(set-2drls PRIVATE linpack LAPACK::LAPACK)
 
 # --- 2D SOLA inversion executable: 2dsola ---
 if(SOLAPACK_USE_RISC_MGS)
@@ -73,7 +87,7 @@ add_executable(2dsola
   $<TARGET_OBJECTS:solapack_common>
 )
 target_include_directories(2dsola PRIVATE src)
-target_link_libraries(2dsola PRIVATE linpack ${LAPACK_LIBRARIES})
+target_link_libraries(2dsola PRIVATE linpack LAPACK::LAPACK)
 
 # --- Install rules ---
 install(TARGETS set-2drls 2dsola

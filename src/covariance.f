@@ -111,12 +111,7 @@ c     write(*,*) 'l,n,i,inblock(i),nexp = ',l,n,inblock(i),nexp
             stop 'Incompatible Modeset and Covariance file'
          endif
          do j=1,nexp
-            read(ilun,*) (chol_sigma(k,j,i),k=1,4)
-            read(ilun,*) (chol_sigma(k,j,i),k=5,8)
-            read(ilun,*) (chol_sigma(k,j,i),k=9,12)
-            read(ilun,*) (chol_sigma(k,j,i),k=13,16)
-            read(ilun,*) (chol_sigma(k,j,i),k=17,18)
-c     write (*,*) (chol_sigma(k,j,i),k=1,18)
+            read(ilun,*) (chol_sigma(k,j,i),k=1,nexp)
          enddo
       enddo
       return

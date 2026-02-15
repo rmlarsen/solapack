@@ -12,24 +12,18 @@
 
 
 /* Macros for byteswapping */
-#define SWAP(a,b)   { char __tmp; __tmp=(a); (a)=(b); (b)=__tmp; }
-#define __SWAP(a,b,tmp)    (tmp)=(a); (a)=(b); (b)=(tmp); 
-#define SWAP2(a) { char __tmp; char *__ptr; __ptr = (char *) &(a); \
-                   __SWAP(__ptr[0],__ptr[1],__tmp); }
-#define SWAP3(a) { char __tmp; char *__ptr; __ptr = (char *) &(a); \
-                   __SWAP(__ptr[0],__ptr[2],__tmp); }
-#define SWAP4(a) { char __tmp; char *__ptr; __ptr = (char *) &(a); \
-                   __SWAP(__ptr[0],__ptr[3],__tmp);  \
-                   __SWAP(__ptr[1],__ptr[2],__tmp); }
-#define SWAP8(a) { char __tmp; char *__ptr; __ptr = (char *) &(a); \
-                   __SWAP(__ptr[0],__ptr[7],__tmp); \
-                   __SWAP(__ptr[1],__ptr[6],__tmp); \
-                   __SWAP(__ptr[2],__ptr[5],__tmp); \
-                   __SWAP(__ptr[3],__ptr[4],__tmp); }
-#define SWAPN(a,n) { int __tmp; char *__ptr; int __i; \
+#define SWAP(a,b)   { char _tmp; _tmp=(a); (a)=(b); (b)=_tmp; }
+#define SWAP2(a) { char *_p = (char *) &(a); SWAP(_p[0],_p[1]); }
+#define SWAP3(a) { char *_p = (char *) &(a); SWAP(_p[0],_p[2]); }
+#define SWAP4(a) { char *_p = (char *) &(a); \
+                   SWAP(_p[0],_p[3]); SWAP(_p[1],_p[2]); }
+#define SWAP8(a) { char *_p = (char *) &(a); \
+                   SWAP(_p[0],_p[7]); SWAP(_p[1],_p[6]); \
+                   SWAP(_p[2],_p[5]); SWAP(_p[3],_p[4]); }
+#define SWAPN(a,n) { char __tmp; char *__ptr; int __i; \
                     __ptr = (char *) &(a); \
                      for(__i=0;__i<((n)/2);__i++) \
-                       __SWAP(__ptr[__i],__ptr[(n)-__i],__tmp); }
+                       SWAP(__ptr[__i],__ptr[(n)-1-__i]); }
 #define SWAPINT(a)    SWAP4((a))
 #define SWAPFLOAT(a)  SWAP4((a))
 #define SWAPDOUBLE(a) SWAP8((a))
@@ -119,14 +113,17 @@ char *f2c_string(char *s, int len)
     printf("f2c_string called with len<=0.\n");
     exit(-1);
   }
-  buf = (char *) malloc(len); 
+  buf = (char *) malloc(len + 1);
+  if (buf == NULL) {
+    fprintf(stderr, "f2c_string: malloc failed\n");
+    exit(-1);
+  }
   memcpy(buf, s, len);
-  i=0;
-  while(i<len && isgraph(buf[i])) i++;
-  if (i >= len ) 
-    buf[len-1] = '\0'; /* Probably scrambles name but try anyhow.. */
-  else
-    buf[i] = '\0';
+  buf[len] = '\0';
+  /* Trim trailing non-graphical characters (Fortran padding) */
+  i = len - 1;
+  while (i >= 0 && !isgraph(buf[i])) i--;
+  buf[i + 1] = '\0';
   return buf;
 }
 
@@ -215,7 +212,7 @@ void C_readfg(FILE *fh, int *precision, int *byteswap, double f1[],
   /**** Begin record ****/
   READINT(dummy);   /* Read record marker */
   READINT(*M_kers);
-  if (*N_points > MAXNLM) {
+  if (*M_kers > MAXNLM) {
     fprintf(stderr,"Too many modes, MAXNLM = %d.\n ",MAXNLM);
     exit(-1);
   }
