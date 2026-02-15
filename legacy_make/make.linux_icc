@@ -1,0 +1,20 @@
+###  Compiler flags for fortran and C modules.
+
+#  Linux
+
+PLAT = LINUX_INTEL
+
+FFLAGS =  -O2 -axW 
+FFLAGS_NOOPT = -O0 
+CFLAGS =   -O2 -axW  
+F77 = ifc
+CC = icc
+LINKER = ifc
+LINKFLAGS =  -O2 -axW 
+LIBPATH =  -L$(HOME)/lib/$(ARCH)
+LINPACK = -llinpack_icc
+LAPACK =   -lmkl_lapack 
+BLAS = -lmkl -lguide 
+RANLIB = ranlib
+MGS = mgs.pentium
+

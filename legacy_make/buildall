@@ -1,0 +1,7 @@
+#! /bin/csh 
+rsh  helios "cd ~rmunk/inversion/2d-ola/Invpack; ./configure; make"
+rsh  helios "cd ~rmunk/inversion/2d-ola/Invpack; ./configure -icc; make"
+rsh  sonar "cd ~rmunk/inversion/2d-ola/Invpack; ./configure; smake"
+rsh  sonar "cd ~rmunk/inversion/2d-ola/Invpack; ./configure -mp; smake"
+rsh  solar2 "cd ~rmunk/inversion/2d-ola/Invpack; ./configure; make"
+rsh  solar2 "cd ~rmunk/inversion/2d-ola/Invpack; ./configure -mp; make"

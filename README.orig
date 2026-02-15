@@ -1,0 +1,124 @@
+================================================================
+|                   SOLApack                                   |
+|              Version 1.0, August 2003                        |
+|          http://quake.stanford.edu/~rmunk/SOLApack/          |
+|    Copyright Rasmus Munk Larsen, Stanford University, 2003   |
+================================================================
+
+
+INTRODUCTION
+  This directory contains a Fortran 77 software package for subtractive
+optimally localized averages (SOLA) inversion of helioseismic
+rotational splitting data. The two main driver programs are found in:
+
+1. set-2drls.nn.f: 
+   Sets up mode kernels given a list of mode parameters and a file 
+   with the mode eigenfunctions as calculated from a solar model.
+
+2. 2dsola.main.lanczos.f: 
+   Reads rotational splittings, mode kernels and solves a linear inverse 
+   problem using the SOLA algorithm to infer the symmetric component
+   of the solar rotation rate as a function of radius and lattitude.
+
+
+INSTALLATION
+  To install the software, follow the steps below:
+
+1. Uncompress and untar the files and go to the SOLApack directory
+   using:
+
+% gunzip SOLApack.tar.gz
+% tar xvf SOLApack.tar
+% cd SOLApack
+
+2.  Edit the make.<plat> file in the SOLApack/Make directory where
+<plat> corresponds to your platform. Currently, makefiles for <plat> =
+{ linux_gcc | sgi | sun | sgi_mp | sun_mp } are available.
+You will probably need to set the variables LINKFLAGS, LAPACK and BLAS
+such that the LAPACK and BLAS libraries installed on your machine are
+linked correctly. You can also set various flags passed to the
+compiler and linker. After you have done this, type
+
+% ./configure {-mp}
+
+in the SOLApack directory. If the -mp flag is used on SGI or SUN, a
+parallel version of the inversion code is built. If you wish to add
+support for a new platform, 'ibm' say, write a new make.ibm file and
+place it in SOLApack/Make and make the necessary additions to the
+configure script.
+
+3. Build the executables by typing
+
+% make
+
+
+RUNNING THE PROGRAMS
+  The make process produces two executables "set-2drls.nn.<PLAT>.x"
+and "2dsola.lanczos.<PLAT>.x", where <PLAT> is an upper case string
+containing the platform name defined in the file "make.inc".  The
+programs are controlled by a set of configuration files specifying a
+series of parameters including the location of input and output
+files. An example, consisting of configuration files and associated
+input files, illustrating how to run the programs is provided in the
+directory Example. To run the example do the following
+
+1. Download eigenfunctions and model files to set up the kernels from
+   the SOLApack webpage:
+
+     http://quake.stanford.edu/~rmunk/SOLApack/
+
+   On the page there are links to versions of the file in big endian and
+   little endian (see discussion below). After downloading the version
+   appropriate for your machine, edit the last line in Example/efunc2d.cfg 
+   such that it contains the absolute path of the downloaded eigenfunction 
+   file and edit the line below the comment "*** amdl file for setting 
+   sound speed ***" in Example/2dsola.cfg to contains the absolute
+   path of the model (amdl) file.
+
+2. Go to the Example directory and run the test by typing:
+
+% cd Example
+% ./runtest.sh
+
+After the run has finished, the directory "Kernels" will contain files
+defining the mode kernels and their associated grid in (r,theta). The
+directory "Inversion" will contain the result of the inversion.
+
+
+DATA FORMATS - LITTLE VERSUS BIG ENDIAN
+  Most of the datafiles used by SOLApack are stored in raw binary
+format and are thus different on computers with little endian (Alpha,
+Intel) and big endian (Sun, SGI, IBM) byte ordering. The program
+"set-2drls.nn.<PLAT>.x" reads and writes all files in the native
+format of the computer it is run on. However, the inversion program
+"2dsola.lanczos.<PLAT>.x" has the ability to read and write binary
+files with the opposite "endianness" of the native machine. This is
+enabled by setting the flag ibyteswap to 1 at the top of the config
+file Example/2dsola.cfg. This way the inversion (the most time
+consuming part) can be run on a little endian machine, while the
+kernel generation and subsequent analysis of the output can be done on
+a big endian machine or vice versa.
+
+
+OBTAINING LAPACK AND BLAS LIBRARIES
+  If your machine does not have these libraries installed, they
+are freely available from the Netlib software repository at
+http://www.netlib.org/lapack and http://www.netlib.org/blas
+respectively. A set of fast BLAS routines optimized for various
+platforms are available from the website of the ATLAS project, see
+http://www.netlib.org/atlas/. Another set of very fast BLAS routines,
+produced by Kazushige Goto (UT-Austin and the Japan Patent Office), is
+available here: http://www.cs.utexas.edu/users/flame/goto.
+
+
+CONTACT INFORMATION 
+  The authors of the software in this package are Rasmus Munk Larsen
+(Stanford University), Jesper Schou (Stanford University) & Jørgen
+Christensen-Dalsgaard (Århus University).
+
+Questions and comments about SOLApack should be directed to:
+
+Rasmus Munk Larsen      
+W.W. Experimental Physics Laboratory, Annex A206
+Stanford University,  Stanford, CA 94305-4085
+E-mail: rmunk@quake.stanford.edu 

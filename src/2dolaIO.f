@@ -1,0 +1,262 @@
+c     Copyright Rasmus Munk Larsen, Stanford University, 2003
+ 
+      subroutine initkronecker(iprecision,modesetfile,kernelfile,
+     c     meshfile,covarfile,bandwidth)
+c     
+c     Read mesh, kernels (as F and G matrices) and modeset specification 
+c     from files and set up the arrays in common block CFG (in
+c     '2dsola.n.include.f') used by the Kronecker matrix-vector routine.
+c     
+      implicit none
+      include '2dsola.n.include.f'
+      integer iprecision,bandwidth
+      character*256 modesetfile,kernelfile,meshfile,covarfile      
+c     
+c     Local variables
+      integer i,ndata,np
+      double precision t0
+c     
+c     Read mesh.
+c     
+      write (*,*) 'Reading mesh...'
+      call flush(6)
+
+      call c_readmesh(iprecision,ibyteswap,rthetw,maxpts,
+     c     N_points,meshfile)
+
+      t0 = rthetw(1,2)
+      i = 2
+      do while (.not.rthetw(i,2).eq.t0)
+         i = i+1
+      enddo
+      N_theta = i-1
+      N_rad = N_points/N_theta
+      write(*,*) 'N_theta,N_rad',N_theta,N_rad
+      if (N_rad.gt.maxrad) stop 'Too many meshpoints in radius'
+      if (N_theta.gt.maxtheta) stop 'Too many meshpoints in co-latitude'
+      do i=1,N_theta
+         tmesh(i) = rthetw(i,2)
+      enddo
+      do i=1,N_rad
+         rmesh(i) = rthetw((i-1)*N_theta+1,1)
+      enddo
+c
+c     Set quadrature weights including weight function.
+c         
+      do i=1,N_points
+         rthetw(i,3) = rthetw(i,3)*rthetw(i,1)
+         if (rthetw(i,3).ne.0d0) then
+            invsqrtw(i) = 1D0/sqrt(rthetw(i,3))
+         else
+            invsqrtw(i) = 1d0
+         endif
+      enddo
+      np = N_points
+c
+c     read kernels, including integration weights
+c     
+      write (*,*) 'Reading kernels...'
+      call flush(6)
+      call c_readfg(iprecision,ibyteswap,f1,f2,maxrad,g1,g2,maxtheta,
+     c     M_kers,N_points,N_rad,M_nl,N_theta,M_lm,inl,ilm,kernelfile)
+      if (np.ne.N_points) then
+         write(*,120) np,N_points,meshfile,kernelfile
+      endif
+c     
+c     Read mode-set.
+c
+      write (*,*) 'Reading modeset...'
+      open(ifdata,file=modesetfile,status='old',form='formatted')
+      call readmodeset(ndata,modeset)
+      close(ifdata)
+
+      if(M_kers.ne.ndata) then
+         write(*,110) ndata,M_kers,modesetfile,kernelfile
+         stop 'Incompatible data and kernel files.'
+      end if
+
+      do i=1,M_kers
+         modeset(i,8) = abs(modeset(i,8))
+      enddo
+      write (*,*) 'Analyzing modeset...'      
+      call analyze_modeset
+
+      if (icovar.eq.1) then
+         write (*,*) 'Reading covariance matrix...'
+         open(ifcovar,file=covarfile,status='old')
+         call read_covariance(ifcovar)
+         call set_chol_sigma(bandwidth)
+         close(ifcovar)
+      endif
+c     
+c     Initialize global arrays in common block.
+c     
+      write (*,*) 'Initializing invsigma_split...'
+      do i=1,M_kers
+         if (modeset(i,8).eq.0d0) then
+            invsigma_split(i) = 1D0
+         else
+            invsigma_split(i) = 1D0/modeset(i,8)
+         endif
+      enddo
+      return
+ 110  format(//' ***** Error in initialization: ndata = ',i7,
+     *     ' ne M_kers =',i7/
+     *     '       Data   file: ',a60/
+     *     '       kernel file: ',a60/
+     *     '       Execution terminated')
+ 120  format(//' ***** Error in initialization: np = ',i7,
+     *     ' ne N_opints =',i7/
+     *     '       Mesh   file: ',a60/
+     *     '       kernel file: ',a60/
+     *     '       Execution terminated')
+      end
+c     
+
+
+      subroutine readmodeset(ndata,inmodeset)
+c
+      implicit none
+      include '2dsola.n.include.f'
+      integer ndata
+      double precision inmodeset(maxnlm,*)
+      integer i,j
+c
+c     NOTE: readmodeset expects that the input-file has already
+c     been opened.
+c      
+c      write (*,*) 'Reading modeset'
+      j=1
+ 10   read(ifdata,*,end=15) (inmodeset(j,i),i=1,8)
+      j=j+1
+      go to 10
+ 15   ndata=j-1
+      if (M_kers.gt.maxnlm) stop 'Too many splittings'
+      return
+      end
+c   
+c***************************************************************
+c     
+      subroutine analyze_modeset
+c
+      implicit none
+      include '2dsola.n.include.f'
+c      double precision tmpmodeset(maxnlm,8)
+      integer i,j,k
+      integer n(maxnlm),l(maxnlm),m(maxnlm)
+      integer n_a(maxnlm),nlnblocks,inlblock(maxnlm)
+      integer compatible,totalblocks
+c
+c     Analyze modeset and set up arrays describing the block Kronecker 
+c     structure of the kernel matrix for use in the Kronecker matrix-vector
+c     routine.
+c
+c     Algorithm:
+c       1. Sort modeset after n, l and m in the order (l,n,m).
+c       2. Find blocks of modes with same l.
+c       3. For each l-block:
+c             a) find blocks for different n.
+c             b) merge (n,l)-blocks with same values of m.
+c        
+c     NOTE: readmodeset and readfg MUST be called first in order to read  
+c     in the modeset data and the inl and ilm index arrays generated by 
+c     J. Schou's set-2drls program.
+c
+
+      write (*,*) 'copying..'
+      do i=1,M_kers         
+         l(i) = int(modeset(i,1))
+         if (l(i).gt.maxl)  stop 'max l to big'
+         n(i) = int(modeset(i,2))
+         m(i) = int(modeset(i,4))
+         n_a(i) = int(modeset(i,6))
+      enddo
+c
+c     Set up ilblock array 
+c     ilblock(i) is the index of the start of the i'th block
+c     of data corresponding to the same l, and subdivide these into
+c     n-blocks corresponding to different multiplets.
+c
+      write (*,*) 'Setting ilblock'
+      nnblocks = 1
+      inblock(1) = 1
+      nlblocks = 1
+      ilblock(1) = 1
+      do i=2,M_kers
+         if ((l(i).ne.l(ilblock(nlblocks))).or.
+     c        (n_a(i).ne.n_a(ilblock(nlblocks)))) then
+c
+c     l or number of a-coefs/m's fitted changed =>
+c
+            nlblocks = nlblocks+1
+            ilblock(nlblocks) = i
+            nnblocks = nnblocks+1
+            inblock(nnblocks) = i
+         else if ((n(i).ne.n(inblock(nnblocks))).or.
+     c        (inl(i).ne.inl(inblock(nnblocks))).or.
+     c        (m(i).ne.m(i-1)+1).or.
+     c        (ilm(i).ne.ilm(i-1)+1)) then
+c     
+c     n changed or m's not consecutive =>
+c
+            nnblocks = nnblocks+1
+            inblock(nnblocks) = i
+         endif
+      enddo
+      ilblock(nlblocks+1) = M_kers+1
+      inblock(nnblocks+1) = M_kers+1
+      write (*,*) 'nnblocks=',nnblocks
+      write (*,*) 'nlblocks=',nlblocks
+c
+c     Analyze each l-block to find whole n-blocks corresponding to a multiplet.
+c
+c
+c   For each l-block do
+c     For each sub n-block (multiplet) do
+c        if (n-block compatible with previous blocks) then merge
+c     
+      totalblocks=0
+      do j=1,nlblocks
+         nlnblocks = 1
+         inlblock(1) = ilblock(j)
+         do i=ilblock(j)+1,ilblock(j+1)-1
+            if ((n(i).ne.n(inlblock(nlnblocks))).or.
+     c           (inl(i).ne.inl(inlblock(nlnblocks))).or.
+     c           (m(i).ne.m(i-1)+1).or.
+     c           (ilm(i).ne.ilm(i-1)+1)) then
+c     
+c     n changed or m's not consecutive =>
+c
+                  nlnblocks = nlnblocks+1
+                  inlblock(nlnblocks) = i
+            endif
+         enddo
+         inlblock(nlnblocks+1) = ilblock(j+1)
+         nblocks(j) = 1
+         iblock(1,j) = ilblock(j)         
+         do i=2,nlnblocks
+            compatible = 0
+            if ( (inlblock(i)-inlblock(i-1)).eq.
+     c           (inlblock(i+1)-inlblock(i))) then
+               compatible = 1
+               do k=0,inlblock(i+1)-inlblock(i)-1
+                  if (m(inlblock(i-1)+k).ne.
+     c                 m(inlblock(i)+k)) then
+                     compatible = 0
+                  endif
+               enddo
+            endif
+            if (compatible.eq.0) then
+               if (nblocks(j).ge.2*maxl) then
+                  stop 'Too many blocks'
+               endif
+               nblocks(j) = nblocks(j)+1
+               iblock(nblocks(j),j) = inlblock(i)
+            endif
+         enddo
+         iblock(nblocks(j)+1,j) = ilblock(j+1)
+         totalblocks = totalblocks+nblocks(j)
+      enddo
+      write (*,*) 'totalblocks       = ',totalblocks
+      return
+      end         

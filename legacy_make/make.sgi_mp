@@ -1,0 +1,23 @@
+###  Compiler flags for fortran and C modules.
+
+
+#   SGI 
+
+PLAT = SGI_MP
+
+#OPT = -mips4 -O3 -OPT:Olimit=0:roundoff=3:div_split=ON:alias=typed 
+OPT = -Ofast=IP27
+
+F77 = f77 -col120
+FFLAGS_NOOPT = -O0
+FFLAGS = -64 -g3 -mp $(OPT)
+CC = cc
+CFLAGS = -64 -g3 -mp $(OPT)
+LINKER = f77
+LINKFLAGS = -64 -g3 -mp $(OPT)
+LIBPATH = 
+LAPACK =  -lcomplib.sgimath_mp
+BLAS =  
+RANLIB = echo
+MGS = mgs.risc
+MAKE = smake

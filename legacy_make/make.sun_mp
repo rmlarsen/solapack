@@ -1,0 +1,15 @@
+###  Compiler flags for fortran and C modules.
+
+#  Sun
+PLAT = SUN_MP
+
+F77 = f77  -e
+FFLAGS = -fast -explicitpar
+FFLAGS_NOOPT = -O0
+CC = cc
+CFLAGS = -fast
+LINKER = f77
+LINKFLAGS = -fast -explicitpar
+LAPACK =  -xlic_lib=sunperf
+RANLIB = ranlib
+MGS = mgs.risc

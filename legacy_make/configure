@@ -1,0 +1,51 @@
+#! /bin/csh -f
+switch (`/bin/uname -s`)
+case SunOS
+	touch blah.o
+	rm -f  *.o *~ core Linpack/*.{o,a} make.inc
+	if ( $1 == "-mp" ) then
+	  setenv PLAT SUN_MP
+          set noclobber
+          foreach file ( *.f )
+            cat $file | sed s/^'cc$PAR'/'c$PAR'/ > tmp.$$
+            cp -f tmp.$$ $file
+            rm tmp.$$	
+          end
+          unset noclobber
+    	  cp Make/make.sun_mp make.inc
+	else
+	  setenv PLAT SUN
+	  cp Make/make.sun make.inc
+	endif
+	breaksw
+case IRIX*
+	touch blah.o
+	rm -f  *.o *~ core Linpack/*.{o,a} make.inc
+	if ( $1 == "-mp" ) then
+	  setenv PLAT SGI_MP
+	  set noclobber
+          foreach file ( *.f )
+            cat $file | sed s/^'c$PAR'/'cc$PAR'/ > tmp.$$
+            cp -f tmp.$$ $file
+            rm tmp.$$	
+          end
+          unset noclobber
+    	  cp Make/make.sgi_mp make.inc
+	else
+	  setenv PLAT SGI
+    	  cp Make/make.sgi make.inc
+	endif
+	breaksw
+case Linux*
+	touch blah.o
+	rm -f  *.o *~ core Linpack/*.{o,a} make.inc
+	if ( $1 == "-icc" ) then
+	  setenv PLAT LINUX_ICC
+	  cp Make/make.linux_icc make.inc
+ 	else
+  	  setenv PLAT LINUX_GCC
+	  cp Make/make.linux_gcc make.inc
+	endif
+	breaksw
+endsw
+echo $PLAT
