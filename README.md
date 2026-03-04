@@ -54,28 +54,25 @@ cmake -B build -DBLA_VENDOR=Intel10_64lp  # MKL
 
 ## Running the example
 
-See the `example/` directory and the original [README](README.orig) for
-details on the configuration files and data formats. The basic workflow is:
+The programs read parameters from stdin. Configuration files use `#`
+for comment lines; the `get-config` script strips them before piping
+to the executables.
 
 ```bash
-# 1. Set up kernel matrix from mode eigenfunctions
-./build/set-2drls < example/set-2drls.cfg
-
-# 2. Perform 2D SOLA inversion
-./build/2dsola < example/2dsola.cfg
+cd example
+./runtest.sh                   # small test (25 modes, l=0,1,2 only)
+SOLAPACK_FULL=1 ./runtest.sh   # full run (29617 modes, ~22 seconds)
 ```
 
-The programs read their parameters from stdin via configuration files.
-Edit the paths in the `.cfg` files to point to your eigenfunction and
-model data files before running.
+You can pass an alternate build directory: `./runtest.sh /path/to/build`.
 
 ## Data files
 
-The eigenfunction (`amde.1`) and model (`amdl.l5bi.d.15`) data files
-are binary and are available in both big-endian (Sun/SPARC, SGI/MIPS)
-and little-endian (Intel, Alpha) formats. These files were originally
-hosted at `http://sun.stanford.edu/~rmunk/SOLApack/` but are no longer
-available from that location.
+The `modeldata/` directory contains little-endian binary files:
+
+- **`amde.1`** — Mode eigenfunctions from the l5bi.d.15 solar model
+  (4,644 modes, l=0–300, n=0–35).
+- **`amdl.l5bi.d.15`** — Solar model for sound-speed scaling.
 
 ## Data formats
 

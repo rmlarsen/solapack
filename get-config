@@ -1,0 +1,3 @@
+#!/bin/sh
+#  Strip comment lines (starting with '#') from config file and write to stdout.
+grep -v "^#" "$1"
