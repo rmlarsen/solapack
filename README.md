@@ -36,19 +36,12 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-### CMake options
+### LAPACK/BLAS
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `SOLAPACK_USE_RISC_MGS` | `OFF` | Use RISC-optimized Modified Gram-Schmidt |
-
-### Specifying LAPACK/BLAS
-
-CMake's `find_package(LAPACK)` will locate your system LAPACK/BLAS. To use
-a specific installation (e.g. Intel MKL, OpenBLAS), set `BLA_VENDOR`:
+The build prefers OpenBLAS if available and falls back to any system
+LAPACK/BLAS. To use a specific provider (e.g. Intel MKL), set `BLA_VENDOR`:
 
 ```bash
-cmake -B build -DBLA_VENDOR=OpenBLAS
 cmake -B build -DBLA_VENDOR=Intel10_64lp  # MKL
 ```
 
