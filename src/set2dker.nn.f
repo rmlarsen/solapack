@@ -50,9 +50,6 @@ c     read parameters etc.
       read (10,*) nskipt
       write (6,*) 'irdf, iwrf, irdg, iwrg'
       read (10,*) irdf,iwrf,irdg,iwrg
-c     write (6,*) '0 for piecewise linear omega,'
-c     write (6,*) '1 for expansion in cos^2n theta'
-c     read (10,*) icaseb
       icaseb=0
       close(10)
 

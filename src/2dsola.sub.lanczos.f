@@ -43,7 +43,6 @@ c
             surfterm = surfterm + Omega_S(j)* 
      c           (f1(N_rad,k1)*g1(j,k2) + f2(N_rad,k1)*g2(j,k2))
          enddo
-c         write(*,*) 'surface term, split = ',surfterm,modeset(i,7)
          modeset(i,7) = -modeset(i,7) + surfterm
       enddo      
       return
@@ -81,8 +80,6 @@ c     Construct householder reflector
 c
       write(6,*) 'Constructing householder reflector'
       
-c      call gen_hh(M_kers, hhvec(3), hhvec(2), hhvec(1))
-
       alpha = pdnrm2(M_kers,hhvec(3),1)
       if (alpha.eq.0d0) stop 'Integrals of kernels are all zero!?'
       hhvec(2) = 1d0/(alpha*(alpha+dabs(hhvec(3))))
@@ -204,16 +201,12 @@ c
 c     set right-hand side, transpose(U) * (sqrt(W) * target - alpha*K*H_1)
 c     
       if(icase.lt.100) then
-c$doacross local(i,j),  shared(sqrtw,target,akh1,N_targets,N_points)
-cc$PAR DOALL private(j), shared(target), readonly(sqrtw,akh1)
          do  j=1,N_targets
             do  i=1,N_points
                target(i,j) = sqrtw(i) * target(i,j) - akh1(i)
             enddo
          enddo          
       else
-c$doacross  local(i,j),  shared(sqrtw,target,N_targets,N_points)
-cc$PAR DOALL private(j), shared(target), readonly(sqrtw)
          do  j=1,N_targets
             do  i=1,N_points
                target(i,j) = target(i,j) * sqrtw(i)
@@ -283,10 +276,6 @@ c     WHILE (last <= N_targets) AND (thistrdoff = trdoff(last)
             goto 50
          endif
 
-cc$doacross if (n*N_targets.gt.10000),
-cc$& local(j,i,first,last,mywork),
-cc$& shared(bidiag,target,resnorm,solnorm,lambda,alpha),
-cc$& shared(n,uplo,numblocks,N_targets,start,end)
          do j=1,numblocks
             first = start(j)
             last = end(j)
@@ -310,8 +299,6 @@ c
 c     Compute solution norm ( = err. magnification) and 
 c     residual norms (deviation from target).
 c     
-c$doacross local(i) share(target,first,last,n,solnorm)
-cc$PAR DOALL shared(solnorm), readonly(n,target)
             do i=first,last-1
                solnorm(i) = ddot(n,target(1,i),1,target(1,i),1)
             enddo
@@ -386,8 +373,6 @@ c
      c     XI,ldxi)
 
       if (N_iter.lt.N_points) then
-c$doacross local(i,j), share(XI,bidiag,N_iter,N_targets)
-cc$PAR DOALL private(i), shared(XI)
          do j=1,N_targets
             do i=N_iter+1,N_points
                XI(i,j) = 0D0
@@ -404,8 +389,6 @@ c
 c    Add alpha*K*h_1 to each column of avker and divide out quadrature weights.
 c     
       if (icase.lt.100) then
-c$doacross local(i,j), shared(akh1,XI,sqrtw,N_targets,N_points)
-cc$PAR DOALL private(i), shared(XI), readonly(invsqrtw,akh1)
          do j=1,N_targets
             do i=1,N_points
                XI(i,j) = 2*XI(i,j)*invsqrtw(i)+(akh1(i)-
@@ -413,8 +396,6 @@ cc$PAR DOALL private(i), shared(XI), readonly(invsqrtw,akh1)
             enddo
          enddo
       else
-c$doacross  local(i,j), shared(XI,sqrtw,N_targets,N_points)
-cc$PAR DOALL private(i), shared(XI), readonly(sqrtw)
          do j=1,N_targets
             do i=1,N_points
                XI(i,j) = XI(i,j)*invsqrtw(i)
@@ -446,8 +427,6 @@ c
       endif
       alpha2 = alpha*alpha      
 
-c$doacross local(i)
-cc$PAR DOALL shared(invnorm), readonly(alpha2,XI,N_iter)
       do i=1,N_targets
          invnorm(i) = 1d0/sqrt(alpha2+ddot(N_iter,XI(1,i),1,XI(1,i),1))
       enddo
@@ -522,7 +501,6 @@ c
 c
 c     Apply Householder transform
 c     
-c         write (6,*) 'set_coeff: q <- H * (alpha; q^hat)'
          call dgemv('T',M_kers,num,1D0,work,M_kers,hhvec(3),1,0D0,
      c        work(lwrk+1),1)
          call dger(M_kers,num,-hhvec(2),hhvec(3),1,work(lwrk+1),1,
@@ -530,8 +508,6 @@ c         write (6,*) 'set_coeff: q <- H * (alpha; q^hat)'
 c
 c     Take out error weighting
 c
-cc$doacross  local(i,j)
-cc$PAR DOALL shared(work), readonly(invsigma_split)
          do i=1,num
             do j=1,M_kers
                work(j+(i-1)*M_kers) =  work(j+(i-1)*M_kers) * 
@@ -618,21 +594,15 @@ c     Apply Householder reflector to vector directly without calling app_hh.
 c
          a = hhvec(2)*pddot(M_kers-1,x,1,hhvec(4),1)
          work(tmp)=-a*hhvec(3)
-c$doacross share(work,x,a,hhvec)
-cc$PAR DOALL shared(work), readonly(x,a,hhvec)
          do i=1,M_kers-1
             work(tmp+i) = x(i)-a*hhvec(3+i)
          enddo
          call dkron_matvec('t','y',alpha,work(tmp),0D0,work(tmp1))
          if (beta.eq.0D0) then
-c$doacross share(y,work,invsqrtw)
-cc$PAR DOALL shared(y), readonly(work,invsqrtw)
             do i=1,N_points
                y(i) = work(tmp1+i-1)*invsqrtw(i)
             enddo
          else
-c$doacross share(y,work,invsqrtw,beta)
-cc$PAR DOALL shared(y), readonly(work,invsqrtw,beta)
             do i=1,N_points
                y(i) = work(tmp1+i-1)*invsqrtw(i)+beta*y(i)
             enddo
@@ -643,8 +613,6 @@ c     Compute y <- alpha * H2^T * Kt^T * W^(1/2) * x + beta y
 c         
          tmp = 1
          tmp1 = tmp+N_points
-c$doacross share(x,work,invsqrtw)
-cc$PAR DOALL shared(work), readonly(x,invsqrtw)
          do i=1,N_points
             work(tmp+i-1) = x(i)*invsqrtw(i)
          enddo
@@ -655,14 +623,10 @@ c     Apply Householder reflector to vector directly without calling app_hh.
 c
          a = hhvec(2)*pddot(M_kers,work(tmp1),1,hhvec(3),1)
          if (beta.eq.0D0) then
-c$doacross share(y,work,a,hhvec)
-cc$PAR DOALL shared(y), readonly(work,a,hhvec)
             do i=1,M_kers-1
                y(i) = work(tmp1+i)-a*hhvec(3+i)
             enddo
          else
-c$doacross share(y,work,a,hhvec,beta)
-cc$PAR DOALL shared(y), readonly(work,a,hhvec,beta)
             do i=1,M_kers-1
                y(i) = work(tmp1+i)-a*hhvec(3+i)+beta*y(i)
             enddo

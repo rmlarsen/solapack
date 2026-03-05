@@ -65,9 +65,6 @@ c
 c     
 c     ylocal1 <- G1*X,  ylocal2 <- G2*X
 c     
-c$doacross  local(iblk,k,k1,k2,n_lm,n_nl,inl_first,ilm_first) 
-cc$& mp_schedtype=interleave, chunk=4
-cc$PAR DOALL private(k,k1,k2,n_lm,n_nl,inl_first,ilm_first)
             do iblk=1,nlblocks
                do k=1,nblocks(iblk)
                   k1=iblock(k,iblk)
@@ -104,10 +101,6 @@ c
 c     
 c     ylocal1 <-( X*transpose(F1),   ylocal2 <- X*transpose(F2))
 c     
-c$doacross  local(iblk,k,k1,k2,n_lm,n_nl,inl_first,ilm_first)
-cc$& mp_schedtype=simple
-cc$& mp_schedtype=dynamic, chunk=32
-cc$PAR DOALL private(k,k1,k2,n_lm,n_nl,inl_first,ilm_first)
             do iblk=1,nlblocks
                do k=1,nblocks(iblk)
                   k1=iblock(k,iblk)
@@ -146,8 +139,7 @@ c
             ylocal1 = 1
             ylocal2 = ylocal1+N_rad*M_lm
             ylocal3 = ylocal2+N_rad*M_lm
-c            call pdzero(2*N_rad*M_lm,wrk,1)
-c     
+c
 c     ylocal1 <- alpha*transpose(G1)*X, ylocal2 <- alpha*transpose(G2)*X
 c     
             call dgemm('t','n',M_lm,N_rad,N_theta,alpha,g1,maxtheta,x,
@@ -157,9 +149,6 @@ c
 c     
 c     y = ylocal1*F1 + ylocal2*F2
 c     
-c$doacross  local(iblk,k,k1,k2,n_lm,n_nl,inl_first,ilm_first) 
-cc$& mp_schedtype=dynamic
-cc$PAR DOALL private(k,k1,k2,n_lm,n_nl,inl_first,ilm_first)
             do iblk=1,nlblocks
                do k=1,nblocks(iblk)
                   k1=iblock(k,iblk)
@@ -194,9 +183,6 @@ c
 c     
 c     y <- transpose(G1)*ylocal1 + transpose(G2)*ylocal2
 c     
-c$doacross  local(iblk,k,k1,k2,n_lm,n_nl,inl_first,ilm_first) 
-cc$& mp_schedtype=dynamic
-cc$PAR DOALL private(k,k1,k2,n_lm,n_nl,inl_first,ilm_first)
             do iblk=1,nlblocks
                do k=1,nblocks(iblk)
                   k1=iblock(k,iblk)

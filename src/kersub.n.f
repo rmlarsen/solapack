@@ -272,10 +272,6 @@ c
         if (lstop) stop
       end if
       write(6,*) 'exiting from readefunc'
-c     do j=1,nrad
-c       write (6,*) radmesh(j),
-c    c              (efuncr(j,i),i=1,nmodes),(efunct(j,i),i=1,nmodes)
-c     end do
       return
       end
 
@@ -306,9 +302,6 @@ c     2d calculations
  15   continue
       call dsetint(1,nrad,drmesh,weights)
       drmesh(1)=0.0
-c     do 20,i=2,nrad
-c       weights(i)=weights(i)/drmesh(i)
-c20   continue
       sum=0.0D0
       do 80,i=1,nrad1
         do 30,j=-maxrad,maxrad
@@ -349,9 +342,7 @@ c20   continue
         k2(1)=0.0D0
         do 120,j=2,nrad
           k1(j)=(efuncr(j,i)*(efuncr(j,i)-c1*efunct(j,i)))*
-c    c          factor/drmesh(j)
      c          factor
-c         k2(j)=c2*efunct(j,i)**2/drmesh(j)
           k2(j)=c2*efunct(j,i)**2
  120    continue
         sum1=0.0D0
@@ -476,7 +467,6 @@ c     for icaseb=2 use orthogonal polynomials as basefunctions for n=1,nset1
         smesh3(i)=smesh(i)**3
         sc2mesh(i)=2.0D0*smesh(i)*xmesh(i)
  10   continue
-c     nset1=(nsetp-1)/nskipt+1
       if (nset1.le.1) then
 c got to set nskipt to something
         nskipt=1
@@ -548,17 +538,12 @@ c got to set nskipt to something
  150        continue
             w1(j,i+1)=weights(j)*wx
  160      continue
-c         w1(j,1)=weights(j)
-c         w1(j,2)=weights(j)*(xj2-0.2)
-c         w1(j,3)=weights(j)*(xj2**2-2./3.*xj2+1./21.)
  210    continue
       else
       end if
       do 220,i=1,nlm
         setl(llm(i))=.true.
  220  continue
-c     do 310,k=1,lmax
-c       do 300,l=1,maxa
       do 310,k=1,maxa
         do 300,l=1,lmax
           ila(l,k,1)=0

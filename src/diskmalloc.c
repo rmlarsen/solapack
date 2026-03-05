@@ -89,9 +89,6 @@ void *diskmalloc(int size, char *prefix)
     perror("mmap failed ");
     goto abort;
   }
-  /*   printf("Mapping in file=%s, size=%d, addr=%d\n",name,size,buf);
- */
-  
   /* Insert new block in info list */
   if (head==NULL) {
     head = (memblock_t *) malloc(sizeof(memblock_t));

@@ -19,15 +19,10 @@ c
       write (*,*) 'inblock(1),inblock(nnblocks) =',inblock(1),
      c     inblock(nnblocks)
 
-c$doacross  local(i,j,k,idx,nexp,info)
-c$& mp_schedtype=simple
-cc$PAR DOALL private(j,k,idx,nexp,info), shared(chol_sigma)
-cc$PAR DOALL readonly(inblock,modeset)
       do i=1,nnblocks
          idx = inblock(i)
          nexp = int(modeset(idx,6))
          
-c     write (*,*) 'l,n = ',modeset(idx,1),modeset(idx,2)
          do j=1,nexp
             do k=1,nexp
                if (abs(k-j).ge.bandwidth) chol_sigma(j,k,i) = 0.0
@@ -69,10 +64,6 @@ c     If trans = 't' then op(C_i) = transpose(C_i)
 c     
       if (icovar.eq.1) then
 
-c$doacross  local(i,idx,nexp)
-c$& mp_schedtype=simple    
-cc$PAR DOALL private(idx,nexp), shared(chol_sigma,x)
-cc$PAR DOALL readonly(inblock,modeset)
          do i=1,nnblocks
             idx = inblock(i)
             nexp = int(modeset(idx,6))
@@ -80,9 +71,6 @@ cc$PAR DOALL readonly(inblock,modeset)
      c           x(idx),1)
          enddo
       else
-c$doacross  local(i)
-c$& mp_schedtype=simple
-cc$PAR DOALL shared(x), readonly(invsigma_split)
          do i=1,M_kers
             x(i) = x(i) * invsigma_split(i)
          enddo
@@ -102,7 +90,6 @@ c
          read(ilun,*) l,n
          idx = inblock(i)
          nexp = int(modeset(idx,6))
-c     write(*,*) 'l,n,i,inblock(i),nexp = ',l,n,inblock(i),nexp
          if (l.ne.modeset(idx,1) .or. n.ne.modeset(idx,2)) then
             write (*,*) 'Covariance file at i,(l,n) = ',i,l,n
             write (*,*) 'is incompatible with '
@@ -116,7 +103,6 @@ c     write(*,*) 'l,n,i,inblock(i),nexp = ',l,n,inblock(i),nexp
             read(ilun,*) (chol_sigma(k,j,i),k=9,12)
             read(ilun,*) (chol_sigma(k,j,i),k=13,16)
             read(ilun,*) (chol_sigma(k,j,i),k=17,18)
-c     write (*,*) (chol_sigma(k,j,i),k=1,18)
          enddo
       enddo
       return

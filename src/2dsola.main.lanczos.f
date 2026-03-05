@@ -436,8 +436,6 @@ c
          call startnewtimer(tnum1)
          call set_COG(target,N_points,cogparms) 
          write(*,*) 'Time spent in set_COG = ',stoptimer(tnum1)
-c     call analyze_avker(1,target,N_points,targetparms,
-c     c              fitparms, cogparms,itargettype)
       endif
 c     
 c     Output inferred rotation rate with formal error bars

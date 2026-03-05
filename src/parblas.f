@@ -10,8 +10,6 @@ c     Copyright Rasmus Munk Larsen, Stanford University, 2003
 
       if ((n.gt.0).and.(incx.ne.0)) then    
          sum = 0d0
-c$doacross local(i) shared(x,n,incx) reduction(sum)
-cc$PAR DOALL readonly(x,incx), reduction(sum)
          do i=1,n
             sum = sum + x(1+(i-1)*incx)**2
          enddo
@@ -35,14 +33,10 @@ c
 
       if ((n.gt.0).and.(incx.ne.0)) then         
          if (incx.eq.1) then
-c$doacross local(i) shared(x,alpha) 
-cc$PAR DOALL shared(x), readonly(alpha)
             do i=1,n
                x(i) = alpha*x(i)
             enddo
          else
-c$doacross local(i) shared(x,n,incx,alpha)
-cc$PAR DOALL  shared(x), readonly(alpha,incx)
             do i=1,n
                x(1+(i-1)*incx) = alpha*x(1+(i-1)*incx)
             enddo
@@ -65,14 +59,10 @@ c
 
       if ((n.gt.0).and.(incx.ne.0).and.(incy.ne.0)) then         
          if (incx.eq.1 .and. incy.eq.1) then
-c$doacross local(i) shared(x,y,n) 
-cc$PAR DOALL  shared(y), readonly(x)
             do i=1,n
                y(i) = x(i)
             enddo
          else
-c$doacross local(i) shared(x,y,n,incx,incy)
-cc$PAR DOALL  shared(y), readonly(x,incx,incy)
             do i=1,n
                y(1+(i-1)*incy) = x(1+(i-1)*incx)
             enddo
@@ -93,14 +83,10 @@ c
 
       if ((n.gt.0).and.(incx.ne.0).and.(incy.ne.0)) then         
          if (incx.eq.1 .and. incy.eq.1) then
-c$doacross local(i) shared(x,y,n) 
-cc$PAR DOALL  shared(y), readonly(x,alpha)
             do i=1,n
                y(i) = alpha*x(i) + y(i)
             enddo
          else
-c$doacross local(i) shared(x,y,n,incx,incy)
-cc$PAR DOALL  shared(y), readonly(alpha,x,incx,incy)
             do i=1,n
                y(1+(i-1)*incy) = alpha*x(1+(i-1)*incx) + 
      c              y(1+(i-1)*incy)
@@ -123,14 +109,10 @@ c
 
       if ((n.gt.0).and.(incx.ne.0)) then         
          if (incx.eq.1) then
-c$doacross local(i) shared(x,n) 
-cc$PAR DOALL  shared(x)
             do i=1,n
                x(i) = 0d0
             enddo
          else
-c$doacross local(i) shared(x,n,incx)
-cc$PAR DOALL  shared(x), readonly(incx)
             do i=1,n
                x(1+(i-1)*incx) = 0d0
             enddo
@@ -149,14 +131,10 @@ cc$PAR DOALL  shared(x), readonly(incx)
 
       if ((n.gt.0).and.(incx.ne.0)) then         
          if (incx.eq.1) then
-c$doacross local(i) shared(x,n,alpha) 
-cc$PAR DOALL  shared(x), readonly(alpha)
             do i=1,n
                x(i) = alpha
             enddo
          else
-c$doacross local(i) shared(x,n,incx,alpha)
-cc$PAR DOALL  shared(x), readonly(alpha,incx)
             do i=1,n
                x(1+(i-1)*incx) = alpha
             enddo
@@ -182,15 +160,11 @@ c
       if ((n.gt.0).and.(incx.ne.0).and.(incy.ne.0)) then    
          if (incx.eq.1 .and. incy.eq.1) then
             sum = 0d0
-c$doacross local(i) shared(x,y,n) reduction(sum)
-cc$PAR DOALL  readonly(x,y), reduction(sum)
             do i=1,n
                sum = sum + x(i) * y(i)
             enddo
          else
             sum = 0d0
-c$doacross local(i) shared(x,y,n,incx,incy) reduction(sum)
-cc$PAR DOALL  readonly(x,y,incx,incy), reduction(sum)
             do i=1,n
                sum = sum + x(1+(i-1)*incx) * y(1+(i-1)*incy)
             enddo
@@ -218,14 +192,10 @@ c
       if (n.le.0 .or. incy.eq.0 .or. incx.eq.0) return
       if (alpha.eq.zero .and. beta.eq.zero) then
          if (incy.eq.1) then
-c$doacross shared(y) 
-cc$PAR DOALL shared(y)
             do i=1,n
                y(i) = zero
             enddo
          else
-c$doacross shared(y,incy)
-cc$PAR DOALL shared(y), readonly(incy)
             do i=1,n
                y(1+(i-1)*incy) = zero
             enddo
@@ -241,14 +211,10 @@ cc$PAR DOALL shared(y), readonly(incy)
             call pdcopy(n,x,incx,y,incy)
          else
             if (incx.eq.1 .and. incy.eq.1) then
-c$doacross shared(alpha,x,y) 
-cc$PAR DOALL shared(y), readonly(alpha,x) 
                do i=1,n
                   y(i) = alpha*x(i)
                enddo
             else
-c$doacross shared(alpha,x,y,incx,incy)
-cc$PAR DOALL shared(y), readonly(alpha,x,incx,incy)
                do i=1,n
                   y(1+(i-1)*incy) = alpha*x(1+(i-1)*incx)
                enddo
@@ -262,14 +228,10 @@ c DAXPY
             call pdaxpy(n,alpha,x,incx,y,incy)
          else
             if (incx.eq.1 .and. incy.eq.1) then
-c$doacross shared(alpha,x,y,n) 
-cc$PAR DOALL shared(y), readonly(alpha,x,n) 
                do i=1,n
                   y(i) = alpha*x(i) + beta*y(i)
                enddo
             else
-c$doacross shared(alpha,beta,x,y,n,incx,incy)
-cc$PAR DOALL shared(y), readonly(alpha,beta,x,n,incx,incy)
                do i=1,n
                   y(1+(i-1)*incy) = alpha*x(1+(i-1)*incx) + 
      c                 beta*y(1+(i-1)*incy)
@@ -296,14 +258,10 @@ c
       if (n.le.0 .or. incy.eq.0 .or. incx.eq.0) return
       if (alpha.eq.zero) then
          if (incy.eq.1) then
-c$doacross shared(y) 
-cc$PAR DOALL shared(y)
             do i=1,n
                y(i) = zero
             enddo
          else
-c$doacross shared(y,incy)
-cc$PAR DOALL shared(y), readonly(incy)
             do i=1,n
                y(1+(i-1)*incy) = zero
             enddo
@@ -313,14 +271,10 @@ cc$PAR DOALL shared(y), readonly(incy)
 
          if (alpha.eq.one) then
             if (incx.eq.1 .and. incy.eq.1) then
-c$doacross shared(alpha,x,y) 
-cc$PAR DOALL shared(y), readonly(x) 
                do i=1,n
                   y(i) = x(i)*y(i)
                enddo
             else
-c$doacross shared(alpha,x,y,incx,incy)
-cc$PAR DOALL shared(y), readonly(alpha,x,incx,incy)
                do i=1,n
                   y(1+(i-1)*incy) = x(1+(i-1)*incx)*y(1+(i-1)*incy)
                enddo
@@ -328,14 +282,10 @@ cc$PAR DOALL shared(y), readonly(alpha,x,incx,incy)
 
          else
             if (incx.eq.1 .and. incy.eq.1) then
-c$doacross shared(alpha,x,y) 
-cc$PAR DOALL shared(y), readonly(alpha,x) 
                do i=1,n
                   y(i) = alpha*x(i)*y(i)
                enddo
             else
-c$doacross shared(alpha,x,y,incx,incy)
-cc$PAR DOALL shared(y), readonly(alpha,x,incx,incy)
                do i=1,n
                   y(1+(i-1)*incy) = alpha*x(1+(i-1)*incx)*
      c                 y(1+(i-1)*incy)
