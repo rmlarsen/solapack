@@ -52,10 +52,6 @@ I/O (`2dolaIO.f`, `byteswapIO.c`), target functions (`target.f`), averaging kern
 
 Bundled LINPACK routines (LU and Cholesky factorization/solve) used by both executables.
 
-### Build option
-
-`SOLAPACK_USE_RISC_MGS` selects between `mgs.pentium.f` (default) and `mgs.risc.f` for the Modified Gram-Schmidt implementation in the Lanczos solver.
-
 ### Data files
 
 `modeldata/` contains little-endian binary eigenfunction and solar model files. Byte-swapping for big-endian is controlled by `ibyteswap` in config files.

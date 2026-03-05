@@ -138,7 +138,7 @@ c     If u is zero then generate a random starting vector
       endif
 
 c     Make sure starting vector has unit norm.
-      if (.not.beta(1).eq.1D0) then
+      if (beta(1).ne.1D0) then
          call pdscal(m,1D0 / beta(1), u, 1)
       endif
       
