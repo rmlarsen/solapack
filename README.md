@@ -95,4 +95,5 @@ endianness by setting `ibyteswap = 1` in the configuration file.
 
 ## License
 
-Copyright Rasmus Munk Larsen, Stanford University, 2003.
+Copyright (c) 2003, Rasmus Munk Larsen, Stanford University. Released under
+the [BSD 3-Clause License](LICENSE).
