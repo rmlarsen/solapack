@@ -58,9 +58,9 @@ c     Solution (rotation rate) and error estimates
      c     trdoff,depart,fitparms,cogparms
 
 c     Control parameters (what to do, read-write control etc.)
-      integer iprecision,irscal,irdbidiag, iwrbidiag, irdtranstarget, 
+      integer irscal,irdbidiag, iwrbidiag, irdtranstarget,
      *     icase, iwrtranstarget, itargettype,
-     *     icalcsol, icalcavker, icalccoeff, icalccorr, itargt, 
+     *     icalcsol, icalcavker, icalccoeff, icalccorr, itargt,
      *     idocalc, bandwidth,iwrtarget
 
 c     Misc. local variables (counters and the like).
@@ -74,16 +74,7 @@ c
 c**********************Program begin here ************************************
 c
       call startnewtimer(tnum)
-c     
-c     If ibyteswap=0 then unformatted data files are read in as they are.
-c     Otherwise they are byte-swapped to convert from little to big
-c     endian format (or vice versa).
-c     
-      ibyteswap=0
-      write(6,*) 'Enter ibyteswap'
-      read(5,*) ibyteswap
-      write(6,*) ibyteswap
-c     
+c
 c     Set icase for SOLA. 
 c     icase = icase0 + 100*icase1. 
 c     Here icase0 determines target function. Possible values:
@@ -121,15 +112,7 @@ c
      *     iwrtranstarget
       write(6,*) irdbidiag, iwrbidiag, irdtranstarget, 
      *     iwrtranstarget
-c     
-c     Set iprecision to 0/1 for reading mesh and kernels in 
-c     single/double precision.
-c     
-      iprecision = 0
-      write (6,*) 'Enter iprecision'
-      read(5,*) iprecision
-      write (6,*) iprecision
-c     
+c
 c     Set icovar=1 to read covarience matrix for splittings from 
 c     file fcovar.
 c     Set icovar=0 to assume uncorreated noise and use variance estimates given
@@ -233,7 +216,7 @@ c
 c
 c**************************Start reading data *************************
 c     
-      call initkronecker(iprecision,fdata,fker,fmesh,fcovar,bandwidth)
+      call initkronecker(fdata,fker,fmesh,fcovar,bandwidth)
       write(*,*) 'M_kers, N_targets, N_iter = ',M_kers, N_targets,
      c     N_iter 
       ndata = M_kers
@@ -296,9 +279,9 @@ c
 
          if(iwrbidiag.eq.1) then
             write(6,112) fbidiag
-            call c_writebidiag(ibyteswap,N_points,M_kers,N_iter,bidiag,
-     c           maxpts, hhvec, maxnlm+2, U,N_points, V(2), M_kers,
-     c           fbidiag)
+            call writebidiag(ifbidiag,fbidiag,N_points,M_kers,N_iter,
+     c           bidiag,maxpts, hhvec, maxnlm+2, U,N_points,
+     c           V(2), M_kers)
          endif
 c     
       else
@@ -307,9 +290,9 @@ c     read factorization
 c     
          write (6,*) 'Reading factorization from ',fbidiag
 
-         call c_readbidiag(ibyteswap,N_points,M_kers,N_iter,bidiag,
-     c        maxpts, hhvec, maxnlm+2, U,N_points, V(2), M_kers,
-     c        fbidiag)
+         call readbidiag(ifbidiag,fbidiag,N_points,M_kers,N_iter,
+     c        bidiag,maxpts, hhvec, maxnlm+2, U,N_points,
+     c        V(2), M_kers)
          write(6,*) 'N_points,M_kers, N_iter = ',N_points,M_kers,N_iter
 c     test for same number of kernels and data
          if(M_kers.ne.ndata) then
@@ -324,7 +307,7 @@ c
       if (irscal.eq.1) then
          write (6,*) 'Scaling target width in radius with sound speed.'
          do i=1,N_targets
-            call scale_rwidth(ibyteswap,famdl,targetparms(i,1),xrscal,
+            call scale_rwidth(famdl,targetparms(i,1),xrscal,
      c           targetparms(i,3))
          enddo
       endif
@@ -344,9 +327,9 @@ c
          write (6,*) N_targets,' target functions have been set up'
          call set_COG(target,N_points,cogparms)
          if (iwrtarget.eq.1) then
-            call c_writeavker(ibyteswap, N_targets, N_points, icase, 
-     c           trdoff, targetparms, maxtargets, cogparms(1,1), 
-     c           cogparms(1,2), depart, target,N_points, favker)
+            call writeavker(ifavker, favker, N_targets, N_points,
+     c           icase, trdoff, targetparms, maxtargets, cogparms(1,1),
+     c           cogparms(1,2), depart, target,N_points)
          endif
 c     
 c     Compute transformed targets
@@ -359,8 +342,8 @@ c
          
          if(iwrtranstarget.eq.1) then
             write(6,113) ftranstarget
-            call c_wrmatr(ibyteswap,N_iter,N_targets,target,N_points, 
-     c           ftranstarget)
+            call wrmatr(iftranstarget,ftranstarget,N_iter,N_targets,
+     c           target,N_points)
          endif
 c     
       else
@@ -368,8 +351,8 @@ c
 c     Read transformed targets
 c     
          write (6,*) 'Reading transformed targets from ',ftranstarget
-         call c_rdmatr(ibyteswap,idummy,idummy1,target,N_points, 
-     c        ftranstarget)
+         call rdmatr(iftranstarget,ftranstarget,idummy,idummy1,
+     c        target,N_points)
       endif
 c
 c     Compute the RLS solution to the damped bidiagonal system
@@ -422,9 +405,9 @@ c
 
          call startnewtimer(tnum1)
          write (*,*) 'Writing averaging kernels to ',favker
-         call c_writeavker(ibyteswap, N_targets, N_points, icase,
+         call writeavker(ifavker, favker, N_targets, N_points, icase,
      c        trdoff, targetparms, maxtargets, rot, sigma_rot,
-     c        depart, target,N_points, favker)
+     c        depart, target,N_points)
 c     
 c     If averaging kernels were calculated then determine actual 
 c     target positions and widths.

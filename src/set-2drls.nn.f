@@ -16,7 +16,8 @@ c
       integer lker(maxnlm),nker(maxnlm),mker(maxnlm),itker(maxnlm),
      *        it1ker(maxnlm)
       real frqker(maxnlm), splker(maxnlm), errker(maxnlm)
-      real rpoints(maxpoints),tpoints(maxpoints),weights(maxpoints)
+      double precision rpoints(maxpoints),tpoints(maxpoints),
+     c     weights(maxpoints)
 
       common/incom/lker,nker,mker,itker,it1ker,frqker, splker, errker,
      c     rpoints,tpoints,weights
@@ -62,7 +63,8 @@ c
 
 c     
       open (10,file=frthet,status='unknown',form='unformatted')
-      write (10) npoints,3,(rpoints(j),j=1,npoints),
+      write (10) npoints
+      write (10) (rpoints(j),j=1,npoints),
      *     (tpoints(j),j=1,npoints),
      *     (weights(j),j=1,npoints)
       close (10)

@@ -1,6 +1,6 @@
 c     Copyright Rasmus Munk Larsen, Stanford University, 2003
  
-      subroutine initkronecker(iprecision,modesetfile,kernelfile,
+      subroutine initkronecker(modesetfile,kernelfile,
      c     meshfile,covarfile,bandwidth)
 c     
 c     Read mesh, kernels (as F and G matrices) and modeset specification 
@@ -9,7 +9,7 @@ c     '2dsola.n.include.f') used by the Kronecker matrix-vector routine.
 c     
       implicit none
       include '2dsola.n.include.f'
-      integer iprecision,bandwidth
+      integer bandwidth
       character*256 modesetfile,kernelfile,meshfile,covarfile      
 c     
 c     Local variables
@@ -21,8 +21,7 @@ c
       write (*,*) 'Reading mesh...'
       call flush(6)
 
-      call c_readmesh(iprecision,ibyteswap,rthetw,maxpts,
-     c     N_points,meshfile)
+      call readmesh(ifmesh,meshfile,rthetw,maxpts,N_points)
 
       t0 = rthetw(1,2)
       i = 2
@@ -57,8 +56,8 @@ c     read kernels, including integration weights
 c     
       write (*,*) 'Reading kernels...'
       call flush(6)
-      call c_readfg(iprecision,ibyteswap,f1,f2,maxrad,g1,g2,maxtheta,
-     c     M_kers,N_points,N_rad,M_nl,N_theta,M_lm,inl,ilm,kernelfile)
+      call readfg(ifker,kernelfile,f1,f2,maxrad,g1,g2,maxtheta,
+     c     M_kers,N_points,N_rad,M_nl,N_theta,M_lm,inl,ilm)
       if (np.ne.N_points) then
          write(*,120) np,N_points,meshfile,kernelfile
          stop 'Incompatible mesh and kernel files.'

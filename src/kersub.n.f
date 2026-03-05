@@ -6,8 +6,8 @@ c     reads eigenfunctions from one or more .z files
 
       include 'include1.n.f'
 
-      real efuncr(maxrad,maxmodes),efunct(maxrad,maxmodes)
-      real rm1(maxrrd),rho(maxrrd)
+      double precision efuncr(maxrad,maxmodes),efunct(maxrad,maxmodes)
+      double precision rm1(maxrrd),rho(maxrrd)
       character*80 cfile,filename(10),lnfile,modelfile
       real cs(50),oldmesh(maxrrd),func(2,maxrrd),strmesh(maxrrd),
      *  orgmesh(maxrrd),strfunc(2,maxrrd)
@@ -284,11 +284,11 @@ c     2d calculations
       include 'include1.n.f'
       include 'include2.f'
 
-      real efuncr(maxrad,maxmodes),efunct(maxrad,maxmodes)
+      double precision efuncr(maxrad,maxmodes),efunct(maxrad,maxmodes)
       double precision drmesh(maxrad),rmesh1(maxr1),weights(maxrad)
       double precision k1(0:maxrad),k2(0:maxrad)
       double precision w1(-maxrad:maxrad,maxr1),whelp(0:maxrad)
-      real f1(maxmodes,maxr1),f2(maxmodes,maxr1)
+      double precision f1(maxmodes,maxr1),f2(maxmodes,maxr1)
 
       common/cfunc/efuncr,efunct
       common/setfcom/w1,whelp
@@ -437,7 +437,7 @@ c     for icaseb=2 use orthogonal polynomials as basefunctions for n=1,nset1
       double precision smesh1(maxt),smesh3(maxt),sc2mesh(maxt)
       double precision acoeff(maxa,maxl,maxla)
       integer ila(maxl,maxa,3),llist(maxnlm)
-      real g1(maxlm,maxt1),g2(maxlm,maxt1)
+      double precision g1(maxlm,maxt1),g2(maxlm,maxt1)
       double precision w1(-maxt:maxt,maxt1),whelp(0:maxt)
       double precision plm(maxt,0:maxl),dplm(maxt,0:maxl)
       double precision g1l(maxt),g2l(maxt)
@@ -449,8 +449,8 @@ c     for icaseb=2 use orthogonal polynomials as basefunctions for n=1,nset1
 
       do i=1,maxt1
          do j=1,maxlm
-            g1(j,i) = 0e0
-            g2(j,i) = 0e0
+            g1(j,i) = 0d0
+            g2(j,i) = 0d0
          enddo
       enddo
       pi=4.0D0*atan(1.0D0)

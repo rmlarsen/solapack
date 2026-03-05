@@ -613,7 +613,7 @@ c
 c     
 c***************************************************************
 c     
-      subroutine scale_rwidth(ibyteswap,amdlfile,x0,xrscal,deltax)
+      subroutine scale_rwidth(amdlfile,x0,xrscal,deltax)
 c     
 c     Scale target width provided in deltax with sound speed at
 c     target location x0, relative to sound speed at r/R = xrscal.
@@ -638,8 +638,8 @@ c     test for initializing model, setting dimensionless sound speed into
 c     aa(6,.)
 c     
       if(init.eq.0) then
-         call c_rdamdl(ibyteswap,x,aa,data,nn,nmod,ivar,
-     c        icry,ia,amdlfile)
+         call rdamdl(25,amdlfile,x,aa,data,nn,nmod,ivar,
+     c        icry,ia)
          call flush(6)
          if(icry.ne.0) stop 'scale_radwidth'
 c     

@@ -80,11 +80,8 @@ The `modeldata/` directory contains little-endian binary files:
 
 ## Data formats
 
-Most data files used by SOLApack are stored in raw binary format and
-differ between little-endian (Intel, Alpha) and big-endian (Sun, SGI, IBM)
-machines. The kernel setup program reads and writes files in the native
-format. The inversion program can read and write files with the opposite
-endianness by setting `ibyteswap = 1` in the configuration file.
+Data files are stored in native Fortran unformatted (binary) format.
+All kernel and mesh data is in double precision.
 
 ## License
 
