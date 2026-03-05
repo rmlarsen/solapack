@@ -10,6 +10,10 @@
 #define SINGLE 0
 #define DOUBLE 1
 
+/* Suppress warn_unused_result for fread in legacy I/O code */
+static inline size_t fread_unchecked(void *p, size_t sz, size_t n, FILE *f)
+{ size_t r = fread(p, sz, n, f); return r; }
+
 
 /* Macros for byteswapping */
 #define SWAP(a,b)   { char __tmp; __tmp=(a); (a)=(b); (b)=__tmp; }
@@ -41,21 +45,21 @@
                         case 8: SWAP8((a)); break; \
                         default: SWAPN(a,sizeof((a))); }; }
 
-#define READINT(a)   fread(&(a),sizeof(int),1,fh); \
-                      if (*byteswap) SWAPINT((a)); 
-#define READINTS(a,n)  { int __i; fread((a),sizeof(int),n,fh); \
+#define READINT(a)   fread_unchecked(&(a),sizeof(int),1,fh); \
+                      if (*byteswap) SWAPINT((a));
+#define READINTS(a,n)  { int __i; fread_unchecked((a),sizeof(int),n,fh); \
                          if (*byteswap) \
-                           for(__i=0;__i<n;__i++) SWAPINT((a)[__i]); } 
-#define READFLOAT(a)  fread(&(a),sizeof(float),1,fh); \
-                      if (*byteswap) SWAPFLOAT((a)); 
-#define READFLOATS(a,n)  { int __i; fread((a),sizeof(float),n,fh); \
+                           for(__i=0;__i<n;__i++) SWAPINT((a)[__i]); }
+#define READFLOAT(a)  fread_unchecked(&(a),sizeof(float),1,fh); \
+                      if (*byteswap) SWAPFLOAT((a));
+#define READFLOATS(a,n)  { int __i; fread_unchecked((a),sizeof(float),n,fh); \
                          if (*byteswap) \
-                           for(__i=0;__i<n;__i++) SWAPFLOAT((a)[__i]); } 
-#define READDOUBLE(a) fread(&(a),sizeof(double),1,fh); \
-                      if (*byteswap) SWAPDOUBLE((a)); 
-#define READDOUBLES(a,n)  { int __i; fread((a),sizeof(double),n,fh); \
+                           for(__i=0;__i<n;__i++) SWAPFLOAT((a)[__i]); }
+#define READDOUBLE(a) fread_unchecked(&(a),sizeof(double),1,fh); \
+                      if (*byteswap) SWAPDOUBLE((a));
+#define READDOUBLES(a,n)  { int __i; fread_unchecked((a),sizeof(double),n,fh); \
                          if (*byteswap) \
-                           for(__i=0;__i<n;__i++) SWAPDOUBLE((a)[__i]); } 
+                           for(__i=0;__i<n;__i++) SWAPDOUBLE((a)[__i]); }
 
 
 #define WRITEINT(a)   if (*byteswap) SWAPINT((a)); \

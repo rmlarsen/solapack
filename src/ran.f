@@ -1,4 +1,5 @@
       FUNCTION GASDEV(IDUM)
+      SAVE ISET,GSET
       DATA ISET/0/
       IF (ISET.EQ.0) THEN
 1       V1=2.*RAN1(IDUM)-1.
@@ -17,6 +18,7 @@
       END
       FUNCTION RAN0(IDUM)
       DIMENSION V(97)
+      SAVE IFF,V,Y
       DATA IFF /0/
       IF(IDUM.LT.0.OR.IFF.EQ.0)THEN
         IFF=1
@@ -31,7 +33,7 @@ c         V(J)=RAN(ISEED)
 c       Y=RAN(ISEED)
       ENDIF
       J=1+INT(97.*Y)
-      IF(J.GT.97.OR.J.LT.1)PAUSE
+      IF(J.GT.97.OR.J.LT.1)STOP 'RAN: index out of range'
       Y=V(J)
       RAN0=Y
 c     V(J)=RAN(ISEED)
@@ -42,6 +44,7 @@ c     V(J)=RAN(ISEED)
       PARAMETER (M1=259200,IA1=7141,IC1=54773,RM1=3.8580247E-6)
       PARAMETER (M2=134456,IA2=8121,IC2=28411,RM2=7.4373773E-6)
       PARAMETER (M3=243000,IA3=4561,IC3=51349)
+      SAVE IFF,IX1,IX2,IX3,R
       DATA IFF /0/
       IF (IDUM.LT.0.OR.IFF.EQ.0) THEN
         IFF=1
@@ -61,7 +64,7 @@ c     V(J)=RAN(ISEED)
       IX2=MOD(IA2*IX2+IC2,M2)
       IX3=MOD(IA3*IX3+IC3,M3)
       J=1+(97*IX3)/M3
-      IF(J.GT.97.OR.J.LT.1)PAUSE
+      IF(J.GT.97.OR.J.LT.1)STOP 'RAN: index out of range'
       RAN1=R(J)
       R(J)=(FLOAT(IX1)+FLOAT(IX2)*RM2)*RM1
       RETURN
@@ -69,6 +72,7 @@ c     V(J)=RAN(ISEED)
       FUNCTION RAN2(IDUM)
       PARAMETER (M=714025,IA=1366,IC=150889,RM=1.4005112E-6)
       DIMENSION IR(97)
+      SAVE IFF,IY,IR
       DATA IFF /0/
       IF(IDUM.LT.0.OR.IFF.EQ.0)THEN
         IFF=1
@@ -81,7 +85,7 @@ c     V(J)=RAN(ISEED)
         IY=IDUM
       ENDIF
       J=1+(97*IY)/M
-      IF(J.GT.97.OR.J.LT.1)PAUSE
+      IF(J.GT.97.OR.J.LT.1)STOP 'RAN: index out of range'
       IY=IR(J)
       RAN2=IY*RM
       IDUM=MOD(IA*IDUM+IC,M)
@@ -93,6 +97,7 @@ C         IMPLICIT REAL*4(M)
 C         PARAMETER (MBIG=4000000.,MSEED=1618033.,MZ=0.,FAC=2.5E-7)
       PARAMETER (MBIG=1000000000,MSEED=161803398,MZ=0,FAC=1.E-9)
       DIMENSION MA(55)
+      SAVE IFF,INEXT,INEXTP,MA
       DATA IFF /0/
       IF(IDUM.LT.0.OR.IFF.EQ.0)THEN
         IFF=1

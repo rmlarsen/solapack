@@ -52,6 +52,17 @@ cmake -B build -DBLA_VENDOR=OpenBLAS
 cmake -B build -DBLA_VENDOR=Intel10_64lp  # MKL
 ```
 
+## Running tests
+
+```bash
+cmake --build build
+ctest --test-dir build
+```
+
+This runs the small test (25 modes), which exercises both the kernel setup
+(`set-2drls`) and the SOLA inversion (`2dsola`), and verifies correct output.
+Use `ctest --test-dir build -V` for verbose output.
+
 ## Running the example
 
 The programs read parameters from stdin. Configuration files use `#`

@@ -90,6 +90,7 @@ c       from now on pretend iselect=0
       else
         nmodes=0
       end if
+      nrst1=0
       write (6,*) 'reading eigenfunctions from file(s):'
       do 50,nfile=1,nfiles
         write (6,'(A80)') filename(nfile)
@@ -135,21 +136,21 @@ c       from now on pretend iselect=0
 c
 c  test for storing mesh for later interpolation
 c
-	nrorg1=nr1
-	if(nrsmsh.eq.1) then
-	  if(nfile.eq.1) then
-	    do i=1,nr1
-	      strmesh(i)=oldmesh(i)
-	    end do
-	    nrst1=nr1
-	  else
-	    do i=1,nr1
-	      orgmesh(i)=oldmesh(i)
+        nrorg1=nr1
+        if(nrsmsh.eq.1) then
+          if(nfile.eq.1) then
+            do i=1,nr1
+              strmesh(i)=oldmesh(i)
             end do
-	    do i=1,nrst1
-	      oldmesh(i)=strmesh(i)
+            nrst1=nr1
+          else
+            do i=1,nr1
+              orgmesh(i)=oldmesh(i)
             end do
-	    nr1=nrst1
+            do i=1,nrst1
+              oldmesh(i)=strmesh(i)
+            end do
+            nr1=nrst1
           end if
         end if
         nr2=nr1
@@ -209,16 +210,16 @@ c
 c
 c  test for resetting mesh
 c
-	if(nrsmsh.eq.1.and.nfile.gt.1) then
-	  do i=1,2
-	    do j=1,nrorg1
-	      strfunc(i,j)=func(i,j)
+        if(nrsmsh.eq.1.and.nfile.gt.1) then
+          do i=1,2
+            do j=1,nrorg1
+              strfunc(i,j)=func(i,j)
             end do
-	  end do
-	  do i=1,nr1
-	    call lir(strmesh(i),orgmesh,func(1,i),strfunc,2,2,
+          end do
+          do i=1,nr1
+            call lir(strmesh(i),orgmesh,func(1,i),strfunc,2,2,
      *            nrorg1,i,inter)
-	  end do
+          end do
         end if
         p=max(l-1,1)
         if (iadd.eq.1) then

@@ -479,5 +479,4 @@ c
      *     'deltat_fit:'/'#')
  130  format(1pe11.3,0p4f10.5,1p2e13.5)
  131  format(6e13.5)
- 904  format(4e15.7)
       end

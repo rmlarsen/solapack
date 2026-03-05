@@ -25,7 +25,7 @@ cc$PAR DOALL private(j,k,idx,nexp,info), shared(chol_sigma)
 cc$PAR DOALL readonly(inblock,modeset)
       do i=1,nnblocks
          idx = inblock(i)
-         nexp = modeset(idx,6)
+         nexp = int(modeset(idx,6))
          
 c     write (*,*) 'l,n = ',modeset(idx,1),modeset(idx,2)
          do j=1,nexp
@@ -75,7 +75,7 @@ cc$PAR DOALL private(idx,nexp), shared(chol_sigma,x)
 cc$PAR DOALL readonly(inblock,modeset)
          do i=1,nnblocks
             idx = inblock(i)
-            nexp = modeset(idx,6)
+            nexp = int(modeset(idx,6))
             call dtrsv('l',trans,'n',nexp,chol_sigma(1,1,i),maxexp,
      c           x(idx),1)
          enddo
@@ -101,7 +101,7 @@ c
       do i=1,M_nl
          read(ilun,*) l,n
          idx = inblock(i)
-         nexp = modeset(idx,6)
+         nexp = int(modeset(idx,6))
 c     write(*,*) 'l,n,i,inblock(i),nexp = ',l,n,inblock(i),nexp
          if (l.ne.modeset(idx,1) .or. n.ne.modeset(idx,2)) then
             write (*,*) 'Covariance file at i,(l,n) = ',i,l,n

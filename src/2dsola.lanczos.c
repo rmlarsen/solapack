@@ -10,7 +10,7 @@
 
 extern void SOLA2D(void *, void *, void *);
 
-int main(int argc, char *argv[])
+int main(void)
 {
   void *U,*V,*target;
   int Vsize,disk=0;
