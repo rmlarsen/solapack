@@ -1,12 +1,10 @@
 c     Copyright Rasmus Munk Larsen, Stanford University, 2003
 
-c     parameter (maxrad=602,maxr0=maxrad,maxmodes=1500,maxl=260)
-c     parameter (maxrad=602,maxr0=maxrad,maxmodes=1000,maxl=65)
       parameter (maxrad=602,maxr0=maxrad,maxmodes=4000,maxl=310)
       parameter (maxrrd=5000)
       parameter (maxexp=36)
       character*(*) tmpdir
-      parameter (tmpdir='/scr45/rmunk/')
+      parameter (tmpdir='/tmp')
       character*24 timestamp
 
 c     maxrad: maximum number of gridpoints for kernels

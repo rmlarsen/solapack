@@ -21,8 +21,6 @@ c
 c     Set quadrature weights
       call set_qweights(1,wint)
 
-c$doacross local(i,j,k,lowidx,upidx,idx,rsum,tsum,rsum_old,tsum_old)
-cc$PAR DOALL private(j,k,lowidx,upidx,idx,rsum,tsum,rsum_old,tsum_old)
       do i=1,N_targets                  
 c     
 c     Find center of gravity of averaging kernels.
@@ -45,7 +43,7 @@ c
             rsum_old = rsum
             do k=1,N_theta
                idx = (j-1)*N_theta+k
-               rsum = rsum + avker(idx,i) * wint(j)
+               rsum = rsum + avker(idx,i) * wint(idx)
             enddo
             if (rsum.gt.0.25 .and. lowidx.eq.0)  then
                lowidx = (j-1)*N_theta+1

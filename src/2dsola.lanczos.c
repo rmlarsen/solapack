@@ -18,50 +18,19 @@ int main(void)
   puts("Trying to allocate workspace with valloc.");
   U = (double *) safevalloc(sizeof(double)*MAXPTS*MAXITER);
   target = (double *) safevalloc(sizeof(double)*MAXPTS*MAXPTS);
-  Vsize = sizeof(double)*MAXNLM*MAXITER+MAXPTS+MAXITER+MAXNLM; 
-  /*   Vsize = sizeof(double)*MAXNLM*MAXPTS+MAXPTS+MAXITER+MAXNLM;  */
-  printf("Vsize = %d	\n",Vsize);
+  Vsize = sizeof(double)*MAXNLM*MAXITER+MAXPTS+MAXITER+MAXNLM;
+  printf("Vsize = %d\n",Vsize);
   V = (double *) valloc(Vsize);
   if (V == NULL)
   {
     puts("Malloc failed, attempting to allocate workspace using mmap.");
-    puts("Allocating workspace using mmap.");
-    V = (double *) diskmalloc(Vsize,"V.");    
+    V = (double *) diskmalloc(Vsize,"V.");
     if (V == NULL)
       exit(-1);
-    /*    U = (double *) diskmalloc(sizeof(double)*MAXPTS*MAXITER,"U.");
-    if (U == NULL)
-    {
-      diskfree(V);
-      exit(-1);
-    }
-    target = (double *) diskmalloc(sizeof(double)*MAXPTS*MAXPTS,"TGT.");
-    if (target == NULL)
-    {
-      diskfree(V);
-      diskfree(U);
-      exit(-1);
-      } */
+    disk = 1;
   }
-  /*  else
-  { 
-    U = (double *) safevalloc(sizeof(double)*MAXPTS*MAXITER);
-    target = (double *) safevalloc(sizeof(double)*MAXPTS*MAXPTS);
-  }  */
-  /*  scanf("%d",&disk);
-  if (disk==1) {
-    puts("Allocating workspace using mmap.");
-    U = (double *) diskmalloc(sizeof(double)*MAXPTS*MAXITER,"U.");
-    Vsize = sizeof(double)*MAXNLM*MAXITER+MAXPTS+MAXITER+MAXNLM;
-    printf("Vsize = %d	\n",Vsize);
-    V = (double *) diskmalloc(Vsize,"V.");
-    target = (double *) diskmalloc(sizeof(double)*MAXPTS*MAXPTS,"TGT.");
-  }
-  else {
-  */
 
   SOLA2D(U,V,target);
-
 
   if (disk==1) {
     diskfree(U);
@@ -75,5 +44,3 @@ int main(void)
   }
   return 0;
 }
-
-

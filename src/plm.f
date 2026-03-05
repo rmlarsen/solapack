@@ -18,7 +18,6 @@ c     lbig is used not to get indexing errors when debugging
 
       m2=m**2
       im=indx(m)
-c      write (6,*) 'l,m,im,nplm,nx = ',l,m,im,nplm,nx
       do 10,i=1,nx
         x1(i)=min(1.0D0-eps,max(-1.0D0+eps,x(i)))
         s(i)=sqrt(1.0D0-x1(i)*x1(i))

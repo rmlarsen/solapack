@@ -191,7 +191,6 @@ c n is even so find nearest point in input to the target output point
               goto 105
             end if
             n1=min(max(1,n0-nd2),nin-n)
-c           write (6,*) n0,n1,xi0,xi1,xo,(xin(j),j=n1,n1+np1-1)
             call rpolint(xin(n1),yin(n1),np1,xo,yout(i),dummy)
  110      continue
         else
@@ -311,7 +310,6 @@ c     extrapolates linearly outside interval given by xin
 
       double precision xin(nin),yin(nin),xout(nout),yout(nout)
 
-c     write (6,*) 1
       n=method
       n=max(n,1)
       n=min(n,nin-1)
@@ -320,7 +318,6 @@ c     write (6,*) 1
       if (n.eq.1) then
         n2=2
         do 10,i=1,nout
-c       write (6,*) n,i,nout,n2,xout(i),xin(n2),nin,xin(n2-1)
  20       if ((xout(i).gt.xin(n2)).and.(n2.lt.nin)) then
             n2=n2+1
             goto 20
@@ -343,7 +340,6 @@ c n is even so find nearest point in input to the target output point
               goto 105
             end if
             n1=min(max(1,n0-nd2),nin-n)
-c           write (6,*) n0,n1,xi0,xi1,xo,(xin(j),j=n1,n1+np1-1)
             call dpolint(xin(n1),yin(n1),np1,xo,yout(i),dummy)
  110      continue
         else
@@ -416,9 +412,6 @@ c n is odd
       parameter (nmax=10)
       implicit double precision (a-h,o-z)
       dimension xa(n),ya(n),c(nmax),d(nmax)
-c     do i=1,n
-c       write (6,*) i,xa(i),ya(i)
-c     end do
       ns=1
       dif=abs(x-xa(1))
       do 11 i=1,n
@@ -459,9 +452,6 @@ c     end do
       parameter (nmax=10)
       implicit real (a-h,o-z)
       dimension xa(n),ya(n),c(nmax),d(nmax)
-c     do i=1,n
-c       write (6,*) i,xa(i),ya(i)
-c     end do
       ns=1
       dif=abs(x-xa(1))
       do 11 i=1,n
