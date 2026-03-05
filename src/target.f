@@ -51,8 +51,7 @@ c
  10      N_targets = N_targets + 1
          read(ids,*,end=20) (targetparms(N_targets,j),j=1,4), 
      c        trdoff(N_targets)
-c     write(6,*)  (targetparms(N_targets,j),j=1,4), trdoff(N_targets)
-c     
+c
 c     loop back for new target parameters
 c     
          if (N_targets.gt.maxtargets) then
@@ -404,19 +403,11 @@ c     Local variables
          rmax = 0.998
          rmin = 0.1
          
-c$doacross local(i,j,dx,dx2,dt,dt2,dts,dts2,integral,starget,weight),
-c$& local(x0,theta0,deltax,deltat,delta,power,x,t,xi),
-c$& shared(target,rthetw,targetparms,N_targets,N_points,icase) 
-cc$PAR DOALL private(j,dx,dx2,dt,dt2,dts,dts2,integral,starget,weight)
-cc$PAR DOALL private(x0,theta0,deltax,deltat,delta,power,x,t,xi)
-cc$PAR DOALL shared(target)
-cc$PAR DOALL readonly(rthetw,targetparms,N_points,icase)
          do j=1,N_targets
             x0 = targetparms(j,1)
             theta0 = targetparms(j,2)
             deltax = targetparms(j,3)
             deltat = targetparms(j,4)
-c            write (*,*) 'x0 ,theta0, deltax ,deltat ',x0 ,theta0, deltax ,deltat
             if (itype.eq.0) then
                do i=1,N_points
                   dx=(rthetw(i,1)-x0)/deltax
@@ -457,8 +448,7 @@ c
                end if
 c     
 c     normalize target
-c     
-c     write (*,*) 'integral = ',integral
+c
                do i=1,N_points
                   target(i,j) = target(i,j)/integral
                   starget(i) = starget(i)/integral
@@ -665,8 +655,7 @@ c
          lint=0
          call dlir(xrscal,x,cint,aa(6,1),1,ia,nn,lint,inter)
          crscal=cint(1)
-c     write(6,*) 'crscal set to',crscal
-         
+
          init=1
 c     
       end if
@@ -677,8 +666,7 @@ c
       call dlir(x0,x,cint,aa(6,1),1,ia,nn,lint,inter)
       fact=cint(1)/crscal
       deltax=fact*deltax
-c     write(6,*) 'fact, deltax set to',fact,deltax
-      
+
       return
       end
 c     

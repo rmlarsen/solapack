@@ -126,7 +126,6 @@ c
 c     NOTE: readmodeset expects that the input-file has already
 c     been opened.
 c      
-c      write (*,*) 'Reading modeset'
       j=1
  10   read(ifdata,*,end=15) (inmodeset(j,i),i=1,8)
       j=j+1

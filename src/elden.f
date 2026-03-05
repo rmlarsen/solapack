@@ -135,7 +135,6 @@ c end inlined call givens(D(i),lam,c,s)
 c
             work(cc1+i)=c
             work(ss1+i)=s
-c            D(i) = c*D(i) - s*lam
             if (i.gt.1) then
                gamma = s*E(i-1)
                E(i-1) = c*E(i-1)
@@ -165,7 +164,6 @@ c     end inlined call givens(lambda,gamma,c,s)
 c
                work(cc2+i) = c
                work(ss2+i) = s
-c               lam = c*lambda - s*gamma            
             endif
          enddo
          
@@ -173,10 +171,6 @@ c
 c     Apply the orthogonal transformations in parallel 
 c     to the right-hand sides.
 c
-c$doacross  local(i,j,a,b,t1,t),
-c$& share(RHS,work,resnorm,cc1,ss1,cc2,ss2,nrhs,n)
-cc$PAR DOALL private(i,a,b,t1,t), readonly(cc1,cc2,ss1,ss2,n,work)
-cc$PAR DOALL shared(RHS,resnorm)
          do j=1,nrhs
             t1 = 0d0
             t = 0d0
@@ -226,7 +220,6 @@ c end inlined call givens(D(i),lam,c,s)
 c
             work(cc1+i)=c
             work(ss1+i)=s
-c            D(i) = c*D(i) - s*lam
             if (i.lt.n) then
                gamma = s*E(i)
                E(i) = c*E(i)
@@ -256,7 +249,6 @@ c     end inlined call givens(lambda,gamma,c,s)
 c
                work(cc2+i) = c
                work(ss2+i) = s
-c               lam = c*lambda - s*gamma            
             endif
          enddo
 
@@ -264,10 +256,6 @@ c
 c     Apply the orthogonal transformations in parallel 
 c     to the right-hand sides.
 c
-c$doacross  local(i,j,a,b,t,t1), 
-c$&     share(RHS,work,resnorm,cc1,ss1,cc2,ss2,nrhs,n)
-cc$PAR DOALL private(i,a,b,t1,t), readonly(cc1,cc2,ss1,ss2,n,work)
-cc$PAR DOALL shared(RHS,resnorm)
          do j=1,nrhs
             t1 = 0d0
             t = 0d0
@@ -371,11 +359,9 @@ c     end inlined call givens(D(i),E(i),c,s)
 c
          work(ic+i) = cc
          work(is+i) = ss
-c         D(i) = -ss*E(i)+cc*D(i)
          E(i) = -ss*D(i+1)
          D(i+1) = cc*D(i+1)
       enddo 
-c      call givens(D(n),E(n),cc,ss)
 c
 c     inlined call givens(D(n),E(n),cc,ss)
 c
@@ -402,7 +388,6 @@ c     end inlined call givens(D(n),E(n),cc,ss)
 c
       work(ic+n) = cc
       work(is+n) = ss
-c      D(n) = -ss*E(n)+cc*D(n)
       E(n) = 0.0
 
       if (k.gt.0) then
@@ -411,9 +396,6 @@ c  Apply Givens rotations to C:
 c
          if (lsame(side,'L') .and. lsame(trans,'T')) then
 c         C <- transpose(Q) * C
-c$doacross share(C,ic,is,k,n), local(i,j,a,b)
-cc$PAR DOALL private(i,a,b), readonly(ic,is,n,work)
-cc$PAR DOALL shared(C)
             do j=1,k
                do i=1,n
                   a = work(ic+i)*C(i,j) - work(is+i)*C(i+1,j)
@@ -425,9 +407,6 @@ cc$PAR DOALL shared(C)
          else if (lsame(side,'L') .and. lsame(trans,'N')) then
 c        C <- Q * C
             write (*,*) 'side=L,  trans=N'
-c$doacross share(C,ic,is,k,n), local(i,j,a,b)
-cc$PAR DOALL private(i,a,b), readonly(ic,is,n,work)
-cc$PAR DOALL shared(C)
             do j=1,k
                do i=n,1,-1
                   a = work(ic+i)*C(i,j) + work(is+i)*C(i+1,j)
@@ -441,9 +420,6 @@ c        C <- C * transpose(Q)
             do i=n,1,-1
                ss = work(is+i)
                cc = work(ic+i)
-c$doacross share(C,ic,is,k,n,ss,cc), local(j,a,b)
-cc$PAR DOALL private(j,a,b), readonly(ss,cc,i,ic,is,n,work)
-cc$PAR DOALL shared(C)
                do j=1,k
                   a = cc*C(j,i) + ss*C(j,i+1)
                   b = -ss*C(j,i) + cc*C(j,i+1)
@@ -456,9 +432,6 @@ c        C <- C * Q
             do i=1,n
                ss = work(is+i)
                cc = work(ic+i)
-c$doacross share(C,ic,is,k,n,ss,cc), local(j,a,b)
-cc$PAR DOALL private(j,a,b), readonly(ss,cc,i,ic,is,n,work)
-cc$PAR DOALL shared(C)
                do j=1,k
                   a = cc*C(j,i) - ss*C(j,i+1)
                   b = ss*C(j,i) + cc*C(j,i+1)
@@ -498,9 +471,6 @@ C compute reciprocals of diagonal elements to avoid division in inner loop.
 c
 c     Matrix is LOWER bidiagonal.
 c
-c$doacross local(i,j), share(D,E,RHS,n,nrhs)
-cc$PAR DOALL private(i), readonly(E,work,n)
-cc$PAR DOALL shared(RHS)
          do j=1,nrhs
             RHS(1,j) = RHS(1,j)*work(1)
             do i=2,n
@@ -511,9 +481,6 @@ cc$PAR DOALL shared(RHS)
 c
 c     Matrix is UPPER bidiagonal.
 c
-c$doacross local(i,j), share(D,E,RHS,n,nrhs)
-cc$PAR DOALL private(i), readonly(E,work,n)
-cc$PAR DOALL shared(RHS)
          do j=1,nrhs
             RHS(n,j) = RHS(n,j)*work(n)
             do i=n-1,1,-1
@@ -542,9 +509,6 @@ c
       logical lsame
 
       if (lsame(uplo,'l')) then
-c$doacross share(A,B,D,E,m,n),local(i,j)
-cc$PAR DOALL private(i), readonly(A,E,D)
-cc$PAR DOALL shared(B)
          do j=1,n
             B(1,j) = A(1,j)*D(1)
             do i=2,m
@@ -552,9 +516,6 @@ cc$PAR DOALL shared(B)
             enddo
          enddo
       else
-c$doacross local(i,j), share(A,B,D,E,m,n)
-cc$PAR DOALL private(i), readonly(A,E,D)
-cc$PAR DOALL shared(B)
          do j=1,n
             do i=1,m-1
                B(i,j) = D(i)*A(i,j) + E(i)*A(i+1,j)
@@ -585,9 +546,6 @@ c
       double precision Ai,oldAi
 
       if (lsame(uplo,'l')) then
-c$doacross share(A,D,E,m,n),local(i,j,Ai,oldAi)
-cc$PAR DOALL private(i,Ai,oldAi), readonly(E,D,m)
-cc$PAR DOALL shared(A)
          do j=1,n
             oldAi = A(1,j)
             A(1,j) = A(1,j)*D(1)
@@ -598,9 +556,6 @@ cc$PAR DOALL shared(A)
             enddo
          enddo
       else
-c$doacross local(i,j), share(A,D,E,m,n)
-cc$PAR DOALL private(i), readonly(E,D,m)
-cc$PAR DOALL shared(A)
          do j=1,n
             do i=1,m-1
                A(i,j) = D(i)*A(i,j) + E(i)*A(i+1,j)

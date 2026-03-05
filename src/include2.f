@@ -3,13 +3,10 @@ c     Copyright Rasmus Munk Larsen, Stanford University, 2003
 c     extra parameters for 2d inversions
 
       parameter (maxr1=402,maxt=1251,maxt1=202)
-c     parameter (maxr1=102,maxt=1251,maxt1=42)
       parameter (maxlm=(maxl+1)*(maxl+2)/2,maxnlm=50001)
-c..      parameter (maxlm=(maxl+1)*(maxl+2)/2,maxnlm=3100)
       parameter (maxa=maxexp+36,maxla=5*maxl)
       parameter (maxrin=210,maxtin=60)
       parameter (maxrav=220,maxtav=220)
-c     parameter (maxrav=102,maxtav=101)
 
 c     maxr1: maximum number of radial gridpoints for inversions
 c     maxt: maximum number of gridpoints in theta for setting up plm's

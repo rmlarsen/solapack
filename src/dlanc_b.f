@@ -197,8 +197,6 @@ c     *********** REORTHOGONALIZATION OF U_IT ***************
 
 c     C <- tmpC
 
-c$doacross local(i,j) shared(C,work,itmpC,ITER)
-cc$PAR DOALL private(j), readonly(work,itmpC,ITER), shared(C)
       do i=1,k
          do j=1,ITER
             C(j,i) = work(itmpC+ITER*(i-1)+j-1)

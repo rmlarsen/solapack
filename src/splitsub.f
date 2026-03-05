@@ -270,7 +270,6 @@ c     orthogonalize the polynomials
  240    continue
  250  continue
       call dpoco(b,maxa,na1,rcond,help,info)
-c     write (6,*) icase,l,rcond
       do 310,m=1,l
         do 270,j=1,na1
           right(j)=p(m,2*j-1)
