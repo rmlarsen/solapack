@@ -12,27 +12,28 @@ extern void SOLA2D(void *, void *, void *);
 
 int main(void)
 {
-  void *U,*V,*target;
-  int Vsize,disk=0;
+  void *U, *V, *target;
+  size_t Vsize;
+  int disk = 0;
 
   puts("Trying to allocate workspace with valloc.");
-  U = (double *) safevalloc(sizeof(double)*MAXPTS*MAXITER);
-  target = (double *) safevalloc(sizeof(double)*MAXPTS*MAXPTS);
-  Vsize = sizeof(double)*MAXNLM*MAXITER+MAXPTS+MAXITER+MAXNLM;
-  printf("Vsize = %d\n",Vsize);
-  V = (double *) valloc(Vsize);
+  U = safevalloc(sizeof(double) * MAXPTS * MAXITER);
+  target = safevalloc(sizeof(double) * MAXPTS * MAXPTS);
+  Vsize = sizeof(double) * MAXNLM * MAXITER + MAXPTS + MAXITER + MAXNLM;
+  printf("Vsize = %zu\n", Vsize);
+  V = valloc(Vsize);
   if (V == NULL)
   {
     puts("Malloc failed, attempting to allocate workspace using mmap.");
-    V = (double *) diskmalloc(Vsize,"V.");
+    V = diskmalloc(Vsize, "V.");
     if (V == NULL)
       exit(-1);
     disk = 1;
   }
 
-  SOLA2D(U,V,target);
+  SOLA2D(U, V, target);
 
-  if (disk==1) {
+  if (disk) {
     diskfree(U);
     diskfree(V);
     diskfree(target);

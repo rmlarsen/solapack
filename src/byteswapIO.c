@@ -92,6 +92,11 @@ static inline size_t fread_unchecked(void *p, size_t sz, size_t n, FILE *f)
 
 
 
+/* Forward declarations */
+static FILE *open_fortran_file(const char *s, int len, const char *mode);
+static void read_single_to_double(FILE *fh, int *byteswap, double *dest,
+                                  int ld, int rows, int cols);
+
 void C_readmesh(FILE *fh, int *precision, int *byteswap, double rthetw[],
 		int *ldr, int *N_points);
 void C_readfg(FILE *fh, int *precision, int *byteswap, double f1[], double f2[],
@@ -99,86 +104,100 @@ void C_readfg(FILE *fh, int *precision, int *byteswap, double f1[], double f2[],
 	      int *M_kers, int *N_points, int *N_rad, int *M_nl,
 	      int *N_theta, int *M_lm, int inl[], int ilm[]);
 void C_rdamdl(FILE *fh, int *byteswap, double x[], double aa[], double data[],
-	      int *n, int *nmod, int *ivar, int *icry, int *ia); 
+	      int *n, int *nmod, int *ivar, int *icry, int *ia);
 void C_rdmatr(FILE *fh, int *byteswap, int *m, int *n, double a[], int *lda);
 void C_wrmatr(FILE *fh, int *byteswap, int *m, int *n, double a[], int *lda);
-void C_writebidiag(FILE *fh, int *byteswap, int *n_points, int *m_kers, int *n_iter, 
-		   double bidiag[],  int *ldbidiag, double hhvec[], int *ldhhvec, 
+void C_writebidiag(FILE *fh, int *byteswap, int *n_points, int *m_kers, int *n_iter,
+		   double bidiag[],  int *ldbidiag, double hhvec[], int *ldhhvec,
 		   double U[], int *ldu, double V[], int *ldv);
-void C_readbidiag(FILE *fh, int *byteswap, int *n_points, int *m_kers, int *n_iter, 
-		  double bidiag[],  int *ldbidiag, double hhvec[], int *ldhhvec, 
+void C_readbidiag(FILE *fh, int *byteswap, int *n_points, int *m_kers, int *n_iter,
+		  double bidiag[],  int *ldbidiag, double hhvec[], int *ldhhvec,
 		  double U[], int *ldu, double V[], int *ldv);
-void C_writeavker(FILE *fh, int *byteswap, int *n_targets, int *n_points, 
-		   int *icase, double trdoff[], double targetparms[], 
-		   int *ldtargetparms, double rot[], double sigma_rot[], 
+void C_writeavker(FILE *fh, int *byteswap, int *n_targets, int *n_points,
+		   int *icase, double trdoff[], double targetparms[],
+		   int *ldtargetparms, double rot[], double sigma_rot[],
 		  double depart[], double avker[], int *ldavker);
 
 
 char *f2c_string(char *s, int len)
 {
-  /* Copy Fortran character* array to zero terminated string. */
+  /* Copy Fortran character* array to NUL-terminated string, trimming trailing spaces. */
   int i; char *buf;
 
-  if (len<1) {
+  if (len < 1) {
     printf("f2c_string called with len<=0.\n");
     exit(-1);
   }
-  buf = (char *) malloc(len+1);
+  buf = (char *) malloc(len + 1);
   memcpy(buf, s, len);
   buf[len] = '\0';
-  i=0;
-  while(i<len && isgraph(buf[i])) i++;
+  /* Trim at first non-printable/space character */
+  for (i = 0; i < len && isgraph(buf[i]); i++)
+    ;
   buf[i] = '\0';
   return buf;
 }
 
 
-void c_readmesh_(int *precision, int *byteswap, double rthetw[],
-		 int *ldr, int *N_points, char *filename, int len) 
+/* Open a file given a Fortran-style character array + length. */
+static FILE *open_fortran_file(const char *s, int len, const char *mode)
 {
-  char *cname;
-  FILE *fh;  
-  
-  cname = f2c_string(filename, len);
-  if ( (fh = fopen(cname,"rb")) == NULL) {
-    fprintf(stderr,"Failed to open file %s: ",cname);
+  char *cname = f2c_string((char *)s, len);
+  FILE *fh = fopen(cname, mode);
+  if (fh == NULL) {
+    fprintf(stderr, "Failed to open file %s: ", cname);
     perror(NULL);
     exit(-1);
   }
+  free(cname);
+  return fh;
+}
+
+
+/* Read single-precision matrix from file and convert to double.
+   Reads rows*cols floats and stores in dest with leading dimension ld. */
+static void read_single_to_double(FILE *fh, int *byteswap, double *dest,
+                                  int ld, int rows, int cols)
+{
+  int i, j;
+  float *buf = (float *)valloc(rows * cols * sizeof(float));
+  READFLOATS(buf, rows * cols);
+  for (j = 0; j < cols; j++)
+    for (i = 0; i < rows; i++)
+      dest[j * ld + i] = (double) buf[j * rows + i];
+  free(buf);
+}
+
+
+void c_readmesh_(int *precision, int *byteswap, double rthetw[],
+		 int *ldr, int *N_points, char *filename, int len)
+{
+  FILE *fh = open_fortran_file(filename, len, "rb");
   C_readmesh(fh, precision, byteswap, rthetw, ldr, N_points);
   fclose(fh);
-  free(cname);
 }
 
 
 void C_readmesh(FILE *fh, int *precision, int *byteswap, double rthetw[],
-		int *ldr, int *N_points) 
+		int *ldr, int *N_points)
 {
-  int dummy;
-  int i,j;
-  float *buf;
+  int dummy, j;
 
   READINT(dummy);   /* Record marker */
-  READINT(*N_points); 
+  READINT(*N_points);
   if (*N_points > MAXPTS) {
-    fprintf(stderr,"Too many meshpoints, MAXPTS = %d.\n ",MAXPTS);
+    fprintf(stderr, "Too many meshpoints, MAXPTS = %d.\n ", MAXPTS);
     exit(-1);
   }
   READINT(dummy);  /* Read number of columns in rthetw */
 
-  /* Read array */
-  if (*precision==SINGLE) {
-    buf = (float *)valloc(3*(*N_points)*sizeof(float));
-    READFLOATS(buf,*N_points*3);
-    for (j=0; j<3; j++) 
-      for (i=0; i<*N_points; i++) 
-	rthetw[j*(*ldr) + i] = (double) buf[j * (*N_points) + i];
-    free(buf);
+  /* Read array (3 columns: r, theta, weight) */
+  if (*precision == SINGLE) {
+    read_single_to_double(fh, byteswap, rthetw, *ldr, *N_points, 3);
   }
   else {
-    for (j=0; j<3; j++) {
-      READDOUBLES(&rthetw[j*(*ldr)],*N_points);
-    }        
+    for (j = 0; j < 3; j++)
+      READDOUBLES(&rthetw[j * (*ldr)], *N_points);
   }
 }
 
@@ -187,176 +206,111 @@ void c_readfg_(int *precision, int *byteswap, double f1[], double f2[],
 	       int *ldf, double g1[], double g2[], int *ldg,
 	       int *M_kers, int *N_points, int *N_rad, int *M_nl,
 	       int *N_theta, int *M_lm, int inl[], int ilm[],
-	       char *filename, int len) 
+	       char *filename, int len)
 {
-  char *cname;
-  FILE *fh;
-
-  cname = f2c_string(filename, len);
-  if ( (fh = fopen(cname,"rb")) == NULL) {
-    fprintf(stderr,"Failed to open file %s: ",cname);
-    perror(NULL);
-    exit(-1);
-  }
-  C_readfg(fh, precision, byteswap,  f1,  f2, ldf,  g1,  g2, ldg, M_kers, 
-	   N_points, N_rad, M_nl,N_theta, M_lm, inl, ilm);
+  FILE *fh = open_fortran_file(filename, len, "rb");
+  C_readfg(fh, precision, byteswap, f1, f2, ldf, g1, g2, ldg, M_kers,
+	   N_points, N_rad, M_nl, N_theta, M_lm, inl, ilm);
   fclose(fh);
-  free(cname);
 }
 
 
-void C_readfg(FILE *fh, int *precision, int *byteswap, double f1[], 
-	      double f2[],int *ldf, double g1[], double g2[], int *ldg,
-	      int *M_kers, int *N_points, int *N_rad, int *M_nl,
-	      int *N_theta, int *M_lm, int inl[], int ilm[]) 
-{  
-  int dummy;
-  int i,j;
-  float *buf;  
+/* Read a matrix record: record marker, data, record marker.
+   If precision==SINGLE, reads floats and converts to double.
+   Otherwise reads doubles directly. */
+static void read_matrix_record(FILE *fh, int *precision, int *byteswap,
+                               double *dest, int ld, int rows, int cols)
+{
+  int dummy, j;
+  READINT(dummy);   /* Record marker */
+  if (*precision == SINGLE) {
+    read_single_to_double(fh, byteswap, dest, ld, rows, cols);
+  }
+  else {
+    for (j = 0; j < cols; j++)
+      READDOUBLES(&dest[j * ld], rows);
+  }
+  READINT(dummy);   /* Record marker */
+}
 
-  /**** Begin record ****/
-  READINT(dummy);   /* Read record marker */
+
+void C_readfg(FILE *fh, int *precision, int *byteswap, double f1[],
+	      double f2[], int *ldf, double g1[], double g2[], int *ldg,
+	      int *M_kers, int *N_points, int *N_rad, int *M_nl,
+	      int *N_theta, int *M_lm, int inl[], int ilm[])
+{
+  int dummy;
+
+  /* Record: M_kers, N_points */
+  READINT(dummy);
   READINT(*M_kers);
   if (*M_kers > MAXNLM) {
-    fprintf(stderr,"Too many modes, MAXNLM = %d.\n ",MAXNLM);
+    fprintf(stderr, "Too many modes, MAXNLM = %d.\n ", MAXNLM);
     exit(-1);
   }
   READINT(*N_points);
   if (*N_points > MAXPTS) {
-    fprintf(stderr,"Too many meshpoints, MAXPTS = %d.\n ",MAXPTS);
+    fprintf(stderr, "Too many meshpoints, MAXPTS = %d.\n ", MAXPTS);
     exit(-1);
   }
-  READINT(dummy);   /* Read record marker */
-  /**** End  record ****/
-
-
-  /**** Begin record ****/
-  READINT(dummy);   /* Read record marker */
   READINT(dummy);
-  READINTS(inl,*M_kers);
-  READINTS(ilm,*M_kers);
-  READINT(dummy);   /* Read record marker */
-  /**** End record ****/
 
-  /**** Begin record ****/
-  READINT(dummy);   /* Read record marker */
+  /* Record: mode indices inl, ilm */
+  READINT(dummy);
+  READINT(dummy);
+  READINTS(inl, *M_kers);
+  READINTS(ilm, *M_kers);
+  READINT(dummy);
+
+  /* Record: N_rad, M_nl */
+  READINT(dummy);
   READINT(*N_rad);
   if (*N_rad > MAXRAD) {
-    fprintf(stderr,"Too many radial meshpoints, N_rad = %d > MAXRAD = %d.\n ",
-	    *N_rad,MAXRAD);
+    fprintf(stderr, "Too many radial meshpoints, N_rad = %d > MAXRAD = %d.\n ",
+	    *N_rad, MAXRAD);
     exit(-1);
   }
-  READINT(*M_nl); 
+  READINT(*M_nl);
   if (*M_nl > MAXNL) {
-    fprintf(stderr,"Too many multiplets, M_nl = %d > MAXNL = %d.\n ",
-	    *M_nl,MAXNL);
+    fprintf(stderr, "Too many multiplets, M_nl = %d > MAXNL = %d.\n ",
+	    *M_nl, MAXNL);
     exit(-1);
   }
-  READINT(dummy);   /* Read record marker */
-  /**** End record ****/
+  READINT(dummy);
 
-  /**** Begin record ****/
-  READINT(dummy);   /* Read record marker */
-  if (*precision==SINGLE) {
-    buf = (float *)valloc((*N_rad)*(*M_nl)*sizeof(float));
-    READFLOATS(buf,(*N_rad)*(*M_nl));
-    for (j=0; j<*M_nl; j++) 
-      for (i=0; i<*N_rad; i++) 
-	f1[j*(*ldf) + i] = (double) buf[j * (*N_rad) + i];
-    free(buf);
-  }
-  else {
-    for (j=0; j<*M_nl; j++)
-      READDOUBLES(&f1[j*(*ldf)],*N_rad);
-  }
-  READINT(dummy);   /* Read record marker */
-  /**** End record ****/
+  /* Radial kernel matrices f1, f2 (N_rad x M_nl) */
+  read_matrix_record(fh, precision, byteswap, f1, *ldf, *N_rad, *M_nl);
+  read_matrix_record(fh, precision, byteswap, f2, *ldf, *N_rad, *M_nl);
 
-  /**** Begin record ****/
-  READINT(dummy);   /* Read record marker */
-  if (*precision==SINGLE) {
-    buf = (float *)valloc((*N_rad)*(*M_nl)*sizeof(float));
-    READFLOATS(buf,(*N_rad)*(*M_nl));
-    for (j=0; j<*M_nl; j++)
-      for (i=0; i<*N_rad; i++)
-	f2[j*(*ldf) + i] = (double) buf[j * (*N_rad) + i];
-    free(buf);
-  }
-  else {
-    for (j=0; j<*M_nl; j++)
-      READDOUBLES(&f2[j*(*ldf)],*N_rad);
-  }
-  READINT(dummy);   /* Read record marker */
-  /**** End record ****/
-
-  /**** Begin record ****/
-  READINT(dummy);   /* Read record marker */
+  /* Record: N_theta, M_lm */
+  READINT(dummy);
   READINT(*N_theta);
   if (*N_theta > MAXTHETA) {
-    fprintf(stderr, "Too many meshpoints in latitude, N_theta = %d > MAXTHETA = %d.\n ", *N_theta,MAXTHETA);
+    fprintf(stderr, "Too many meshpoints in latitude, N_theta = %d > MAXTHETA = %d.\n ",
+            *N_theta, MAXTHETA);
     exit(-1);
   }
-  READINT(*M_lm); 
+  READINT(*M_lm);
   if (*M_lm > MAXLM) {
-    fprintf(stderr,"Too many multiplets, M_lm = %d > MAXLM = %d.\n ",
-	    *M_lm,MAXLM);
+    fprintf(stderr, "Too many multiplets, M_lm = %d > MAXLM = %d.\n ",
+	    *M_lm, MAXLM);
     exit(-1);
   }
-  READINT(dummy);   /* Read record marker */
-  /**** End record ****/
+  READINT(dummy);
 
-  /**** Begin record ****/
-  READINT(dummy);   /* Read record marker */
-  if (*precision==SINGLE) {
-    buf = (float *)valloc((*N_theta)*(*M_lm)*sizeof(float));
-    READFLOATS(buf,(*N_theta)*(*M_lm));
-    for (j=0; j<*M_lm; j++) 
-      for (i=0; i<*N_theta; i++) 
-	g1[j*(*ldg) + i] = (double) buf[j * (*N_theta) + i];
-    free(buf);
-  }
-  else {
-    for (j=0; j<*M_lm; j++)
-      READDOUBLES(&g1[j*(*ldg)],*N_theta);
-  }
-  READINT(dummy);   /* Read record marker */
-  /**** End record ****/
-
-  /**** Begin record ****/
-  READINT(dummy);   /* Read record marker */
-  if (*precision==SINGLE) {
-    buf = (float *)valloc((*N_theta)*(*M_lm)*sizeof(float));
-    READFLOATS(buf,(*N_theta)*(*M_lm));
-    for (j=0; j<*M_lm; j++)
-      for (i=0; i<*N_theta; i++)
-	g2[j*(*ldg) + i] = (double) buf[j * (*N_theta) + i];
-    free(buf);
-  }
-  else {
-    for (j=0; j<*M_lm; j++)
-      READDOUBLES(&g2[j*(*ldg)],*N_theta);
-  }
-  READINT(dummy);   /* Read record marker */
-  /**** End record ****/
+  /* Latitudinal kernel matrices g1, g2 (N_theta x M_lm) */
+  read_matrix_record(fh, precision, byteswap, g1, *ldg, *N_theta, *M_lm);
+  read_matrix_record(fh, precision, byteswap, g2, *ldg, *N_theta, *M_lm);
 }
 
 
 void c_rdamdl_(int *byteswap, double x[], double aa[], double data[],
 	       int *n, int *nmod, int *ivar, int *icry, int *ia,
-	       char *filename, int len) 
+	       char *filename, int len)
 {
-  char *cname;
-  FILE *fh;
-  
-  cname = f2c_string(filename, len);
-  if ( (fh = fopen(cname,"rb")) == NULL) {
-    fprintf(stderr,"Failed to open file %s: ",cname);
-    perror(NULL);
-    exit(-1);
-  }
-  C_rdamdl(fh,byteswap, x, aa, data, n, nmod, ivar, icry, ia);
+  FILE *fh = open_fortran_file(filename, len, "rb");
+  C_rdamdl(fh, byteswap, x, aa, data, n, nmod, ivar, icry, ia);
   fclose(fh);
-  free(cname);
 }
 
 void C_rdamdl(FILE *fh, int *byteswap, double x[], double aa[], double data[],
@@ -391,20 +345,11 @@ void C_rdamdl(FILE *fh, int *byteswap, double x[], double aa[], double data[],
 
 
 void c_rdmatr_(int *byteswap, int *m, int *n, double a[], int *lda,
-	       char *filename, int len) 
+	       char *filename, int len)
 {
-  char *cname;
-  FILE *fh;
-
-  cname = f2c_string(filename, len);
-  if ( (fh = fopen(cname,"rb")) == NULL) {
-    fprintf(stderr,"Failed to open file %s: ",cname);
-    perror(NULL);
-    exit(-1);
-  }
-  C_rdmatr(fh,byteswap, m, n, a, lda);
+  FILE *fh = open_fortran_file(filename, len, "rb");
+  C_rdmatr(fh, byteswap, m, n, a, lda);
   fclose(fh);
-  free(cname);
 }
 
 void C_rdmatr(FILE *fh, int *byteswap, int *m, int *n, double a[], int *lda ) 
@@ -426,20 +371,11 @@ void C_rdmatr(FILE *fh, int *byteswap, int *m, int *n, double a[], int *lda )
 
 
 void c_wrmatr_(int *byteswap, int *m, int *n, double a[], int *lda,
-	       char *filename, int len) 
+	       char *filename, int len)
 {
-  FILE *fh;
-  char *cname;
-
-  cname = f2c_string(filename, len);
-  if ( (fh = fopen(cname,"wb")) == NULL) {
-    fprintf(stderr,"Failed to open file %s: ",cname);
-    perror(NULL);
-    exit(-1);
-  }
+  FILE *fh = open_fortran_file(filename, len, "wb");
   C_wrmatr(fh, byteswap, m, n, a, lda);
   fclose(fh);
-  free(cname);
 }
 
 void C_wrmatr(FILE *fh, int *byteswap, int *m, int *n, double a[], int *lda) 
@@ -458,30 +394,21 @@ void C_wrmatr(FILE *fh, int *byteswap, int *m, int *n, double a[], int *lda)
 
 
 
-void c_readbidiag_(int *byteswap, int *n_points, int *m_kers, int *n_iter, 
-		   double bidiag[],  int *ldbidiag, double hhvec[], int *ldhhvec, 
-		   double U[], int *ldu, double V[], int *ldv, char *filename, int len) 
+void c_readbidiag_(int *byteswap, int *n_points, int *m_kers, int *n_iter,
+		   double bidiag[],  int *ldbidiag, double hhvec[], int *ldhhvec,
+		   double U[], int *ldu, double V[], int *ldv, char *filename, int len)
 {
-  char *cname;
-  FILE *fh;
-
-  cname = f2c_string(filename, len);
-  if ( (fh = fopen(cname,"rb")) == NULL) {
-    fprintf(stderr,"Failed to open file %s: ",cname);
-    perror(NULL);
-    exit(-1);
-  }
-  C_readbidiag(fh, byteswap, n_points, m_kers, n_iter, bidiag, ldbidiag, 
+  FILE *fh = open_fortran_file(filename, len, "rb");
+  C_readbidiag(fh, byteswap, n_points, m_kers, n_iter, bidiag, ldbidiag,
 	       hhvec, ldhhvec, U, ldu, V, ldv);
   fclose(fh);
-  free(cname);
 }
 
-void C_readbidiag(FILE *fh, int *byteswap, int *n_points, int *m_kers, int *n_iter, 
-		  double bidiag[],  int *ldbidiag, double hhvec[], int *ldhhvec, 
-		  double U[], int *ldu, double V[], int *ldv) 
+void C_readbidiag(FILE *fh, int *byteswap, int *n_points, int *m_kers, int *n_iter,
+		  double bidiag[],  int *ldbidiag, double hhvec[], int *ldhhvec,
+		  double U[], int *ldu, double V[], int *ldv)
 {
-  int dummy=0,m,n;
+  int dummy, m, n;
 
   READINT(dummy);   /* Record marker */
   READINT(*n_points); 
@@ -500,23 +427,14 @@ void C_readbidiag(FILE *fh, int *byteswap, int *n_points, int *m_kers, int *n_it
 }
   
  
-void c_writebidiag_(int *byteswap, int *n_points, int *m_kers, int *n_iter, 
-		    double bidiag[],  int *ldbidiag, double hhvec[], int *ldhhvec, 
-		    double U[], int *ldu, double V[], int *ldv, char *filename, int len) 
+void c_writebidiag_(int *byteswap, int *n_points, int *m_kers, int *n_iter,
+		    double bidiag[],  int *ldbidiag, double hhvec[], int *ldhhvec,
+		    double U[], int *ldu, double V[], int *ldv, char *filename, int len)
 {
-  char *cname;
-  FILE *fh;
-
-  cname = f2c_string(filename, len);
-  if ( (fh = fopen(cname,"wb")) == NULL) {
-    fprintf(stderr,"Failed to open file %s: ",cname);
-    perror(NULL);
-    exit(-1);
-  }
-  C_writebidiag(fh, byteswap, n_points, m_kers, n_iter, bidiag,  ldbidiag, hhvec, 
+  FILE *fh = open_fortran_file(filename, len, "wb");
+  C_writebidiag(fh, byteswap, n_points, m_kers, n_iter, bidiag, ldbidiag, hhvec,
 		ldhhvec, U, ldu, V, ldv);
   fclose(fh);
-  free(cname);
 }
 
 void C_writebidiag(FILE *fh, int *byteswap, int *n_points, int *m_kers, int *n_iter, 
@@ -546,43 +464,25 @@ void C_writebidiag(FILE *fh, int *byteswap, int *n_points, int *m_kers, int *n_i
 
 void c_writeavker_(int *byteswap, int *n_targets, int *n_points, int *icase,
 		   double trdoff[], double targetparms[], int *ldtargetparms,
-		   double rot[], double sigma_rot[], double depart[], 
+		   double rot[], double sigma_rot[], double depart[],
 		   double target[], int *ldtarget, char *filename, int len)
 {
-  char *cname;
-  FILE *fh;
-
-  cname = f2c_string(filename, len);
-  if ( (fh = fopen(cname,"wb")) == NULL) {
-    fprintf(stderr,"Failed to open file %s: ",cname);
-    perror(NULL);
-    exit(-1);
-  }
-  C_writeavker(fh, byteswap, n_targets, n_points, icase, trdoff, targetparms, 
+  FILE *fh = open_fortran_file(filename, len, "wb");
+  C_writeavker(fh, byteswap, n_targets, n_points, icase, trdoff, targetparms,
 	       ldtargetparms, rot, sigma_rot, depart, target, ldtarget);
   fclose(fh);
-  free(cname);
 }
 
 
 void c_appendavker_(int *byteswap, int *n_targets, int *n_points, int *icase,
 		   double trdoff[], double targetparms[], int *ldtargetparms,
-		   double rot[], double sigma_rot[], double depart[], 
+		   double rot[], double sigma_rot[], double depart[],
 		   double target[], int *ldtarget, char *filename, int len)
 {
-  char *cname;
-  FILE *fh;
-
-  cname = f2c_string(filename, len);
-  if ( (fh = fopen(cname,"ab")) == NULL) {
-    fprintf(stderr,"Failed to open file %s: ",cname);
-    perror(NULL);
-    exit(-1);
-  }
-  C_writeavker(fh, byteswap, n_targets, n_points, icase, trdoff, targetparms, 
+  FILE *fh = open_fortran_file(filename, len, "ab");
+  C_writeavker(fh, byteswap, n_targets, n_points, icase, trdoff, targetparms,
 	       ldtargetparms, rot, sigma_rot, depart, target, ldtarget);
   fclose(fh);
-  free(cname);
 }
 
 

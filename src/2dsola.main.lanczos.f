@@ -412,21 +412,19 @@ c
       endif
 
       if (icalcavker.eq.1) then
-c     
+c
 c     Compute averaging kernels
-c     
+c
          call startnewtimer(tnum1)
          call set_avker(icase, U, N_points, bidiag, akh1,
      c        target, N_points, sqrtw)
          write(*,*) 'Time spent in set_avker = ',stoptimer(tnum1)
 
-         if (icalcavker.eq.1) then
-            call startnewtimer(tnum1)
-            write (*,*) 'Writing averaging kernels to ',favker
-            call c_writeavker(ibyteswap, N_targets, N_points, icase, 
-     c           trdoff, targetparms, maxtargets, rot, sigma_rot, 
-     c           depart, target,N_points, favker)
-         endif
+         call startnewtimer(tnum1)
+         write (*,*) 'Writing averaging kernels to ',favker
+         call c_writeavker(ibyteswap, N_targets, N_points, icase,
+     c        trdoff, targetparms, maxtargets, rot, sigma_rot,
+     c        depart, target,N_points, favker)
 c     
 c     If averaging kernels were calculated then determine actual 
 c     target positions and widths.

@@ -391,8 +391,7 @@ c
       if (icase.lt.100) then
          do j=1,N_targets
             do i=1,N_points
-               XI(i,j) = 2*XI(i,j)*invsqrtw(i)+(akh1(i)-
-     c              XI(i,j))*invsqrtw(i)
+               XI(i,j) = (XI(i,j) + akh1(i))*invsqrtw(i)
             enddo
          enddo
       else
@@ -577,7 +576,7 @@ c
 c
 c     Check that dimensions are correct
 c
-      if ((.not.m.eq.N_points).or.(.not.n.eq.(M_kers-1))) then
+      if (m.ne.N_points .or. n.ne.(M_kers-1)) then
          write (*,*) 'Error in daprod: Wrong dimensions'
          write (*,*) 'm,n = ',m,n
          stop 'wrong dimensions in daprod'
