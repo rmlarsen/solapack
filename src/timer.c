@@ -43,17 +43,17 @@ void StartTimer(int n)
 
 float StopTimer(int n)
 {
-  if (n<1 || n > N) 
+  if (n<1 || n > N) {
     fprintf(stderr,"StopTimer: Timer number should be between 1 and %d\n",N);
-  else {
-    n = n-1; 
-    gettimeofday (&second[n], &tzp[n]);
-    if (first[n].tv_usec > second[n].tv_usec) {  
-      second[n].tv_usec += 1000000;
-      second[n].tv_sec--;
-    }
+    return 0.0f;
   }
-  return (float) (second[n].tv_sec-first[n].tv_sec) +  
+  n = n-1;
+  gettimeofday (&second[n], &tzp[n]);
+  if (first[n].tv_usec > second[n].tv_usec) {
+    second[n].tv_usec += 1000000;
+    second[n].tv_sec--;
+  }
+  return (float) (second[n].tv_sec-first[n].tv_sec) +
     (float) (second[n].tv_usec-first[n].tv_usec)/1000000.0;
 }
 

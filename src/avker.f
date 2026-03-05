@@ -45,7 +45,7 @@ c
             rsum_old = rsum
             do k=1,N_theta
                idx = (j-1)*N_theta+k
-               rsum = rsum + avker(idx,i) * wint(j)
+               rsum = rsum + avker(idx,i) * wint(idx)
             enddo
             if (rsum.gt.0.25 .and. lowidx.eq.0)  then
                lowidx = (j-1)*N_theta+1

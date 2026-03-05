@@ -61,6 +61,7 @@ c
      c     M_kers,N_points,N_rad,M_nl,N_theta,M_lm,inl,ilm,kernelfile)
       if (np.ne.N_points) then
          write(*,120) np,N_points,meshfile,kernelfile
+         stop 'Incompatible mesh and kernel files.'
       endif
 c     
 c     Read mode-set.
@@ -106,7 +107,7 @@ c
      *     '       kernel file: ',a60/
      *     '       Execution terminated')
  120  format(//' ***** Error in initialization: np = ',i7,
-     *     ' ne N_opints =',i7/
+     *     ' ne N_points =',i7/
      *     '       Mesh   file: ',a60/
      *     '       kernel file: ',a60/
      *     '       Execution terminated')
@@ -129,9 +130,9 @@ c      write (*,*) 'Reading modeset'
       j=1
  10   read(ifdata,*,end=15) (inmodeset(j,i),i=1,8)
       j=j+1
+      if (j.gt.maxnlm) stop 'Too many splittings'
       go to 10
  15   ndata=j-1
-      if (M_kers.gt.maxnlm) stop 'Too many splittings'
       return
       end
 c   
