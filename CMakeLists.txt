@@ -54,7 +54,6 @@ add_library(solapack_common OBJECT
   src/timer.c
   src/dgemm_ovwr.f
   src/byteswapIO.c
-  src/parblas.f
   src/diskmalloc.c
   src/xerbla.f
   src/2dolaIO.f

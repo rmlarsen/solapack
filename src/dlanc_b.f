@@ -107,8 +107,8 @@ c
 c     (C) Rasmus Munk Larsen, JILA, 1997
 c
       logical lsame
-      double precision dlamch,rand,pdnrm2
-      external pdnrm2,pdscal,rand
+      double precision dlamch,rand,dnrm2
+      external dnrm2,dscal,dcopy,rand
       external dlamch,lsame      
 c     
       integer itmpC,iwork
@@ -127,19 +127,19 @@ c
       iwork = itmpC+k*ITER
 c     
 c     If u is zero then generate a random starting vector
-      beta(1) = pdnrm2(m,u,1)
+      beta(1) = dnrm2(m,u,1)
       if (beta(1).eq.0d0) then
          write (*,*) 'DLANC_B: WARNING! Generating random starting' //
      c        'vector.'
          do i=1,m
             u(i,1) = rand()
          enddo
-         beta(1) = pdnrm2(m,u,1)         
+         beta(1) = dnrm2(m,u,1)         
       endif
 
 c     Make sure starting vector has unit norm.
       if (beta(1).ne.1D0) then
-         call pdscal(m,1D0 / beta(1), u, 1)
+         call dscal(m,1D0 / beta(1), u, 1)
       endif
       
 c     
@@ -152,10 +152,10 @@ c
       do it=1,ITER
          if (mod(it,10).eq.0) write (*,*) 'IT = ',it
          if (it.eq.1) then
-            call pdzero(n,v,1)
+            call dscal(n,0d0,v,1)
             call APROD('t',m,n,1D0,u,0D0,v)
          else
-            call pdcopy(n,v(1,it-1),1,v(1,it),1)
+            call dcopy(n,v(1,it-1),1,v(1,it),1)
             call APROD('t',m,n,1D0,u(1,it),-beta(it-1),v(1,it))
          endif
 c     
@@ -165,11 +165,11 @@ c
          call starttimer(timenum1)
 
          call mod_gram_schmidt(n,it-1,v,ldv,v(1,it))
-         alpha(it) = pdnrm2(n,v(1,it),1)
+         alpha(it) = dnrm2(n,v(1,it),1)
 
          treo = treo + dtime(tarr)
          reorth_time = reorth_time + stoptimer(timenum1)         
-         call pdscal(n,1D0/alpha(it),v(1,it),1)
+         call dscal(n,1D0/alpha(it),v(1,it),1)
 
 c     ******************************************************
 
@@ -179,7 +179,7 @@ c     Compute next row in V^T*C
      c           work(itmpC+it-1),ITER)
          endif
 
-         call pdcopy(m,u(1,it),1,u(1,it+1),1)
+         call dcopy(m,u(1,it),1,u(1,it+1),1)
          call APROD('n',m,n,1D0,v(1,it),-alpha(it),u(1,it+1))
             
             
@@ -188,11 +188,11 @@ c     *********** REORTHOGONALIZATION OF U_IT ***************
          tsum=tsum+dtime(tarr)
 
          call mod_gram_schmidt(m,it,u,ldu,u(1,it+1))
-         beta(it) = pdnrm2(m,u(1,it+1),1)
+         beta(it) = dnrm2(m,u(1,it+1),1)
 
          treo=treo+dtime(tarr)
          reorth_time = reorth_time + stoptimer(timenum1)
-         call pdscal(m,1D0/beta(it),u(1,it+1),1)
+         call dscal(m,1D0/beta(it),u(1,it+1),1)
       enddo         
 
 c     C <- tmpC

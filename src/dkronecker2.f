@@ -32,7 +32,7 @@ c
 c     External subroutines and functions called
 c     
       logical lsame
-      external lsame,dgemm,dscal
+      external lsame,dgemm,dscal,dcopy,daxpy
 
 c*******************dkron_matvec begins here **********************
 
@@ -43,12 +43,12 @@ c
 c     y <- beta*y
 c     
          if (beta.eq.0d0) then
-            call pdzero(N_points,y,1)
+            call dscal(N_points,0d0,y,1)
          else
-            call pdscal(N_points,beta,y,1)
+            call dscal(N_points,beta,y,1)
          endif
 
-         call pdcopy(M_kers,x,1,xtmp,1)
+         call dcopy(M_kers,x,1,xtmp,1)
          if (lsame(errscale,'y')) then
             call covar_solve('t',xtmp)
          endif
@@ -61,7 +61,7 @@ c
             ylocal1 = 1
             ylocal2 = ylocal1+N_theta*M_nl
             xlocal  = ylocal2+N_theta*M_nl
-            call pdzero(2*N_theta*M_nl,wrk,1)
+            call dscal(2*N_theta*M_nl,0d0,wrk,1)
 c     
 c     ylocal1 <- G1*X,  ylocal2 <- G2*X
 c     
@@ -97,7 +97,7 @@ c
             ylocal1 = 1
             ylocal2 = ylocal1+N_rad*M_lm
             xlocal = ylocal2+N_rad*M_lm
-            call pdzero(2*N_rad*M_lm,wrk,1)
+            call dscal(2*N_rad*M_lm,0d0,wrk,1)
 c     
 c     ylocal1 <-( X*transpose(F1),   ylocal2 <- X*transpose(F2))
 c     
@@ -206,7 +206,12 @@ c
          if (lsame(errscale,'y')) then
             call covar_solve('n',xtmp)
          endif
-         call pdaxpby(M_kers,1d0,xtmp,1,beta,y,1)
+         if (beta.eq.0d0) then
+            call dcopy(M_kers,xtmp,1,y,1)
+         else
+            call dscal(M_kers,beta,y,1)
+            call daxpy(M_kers,1d0,xtmp,1,y,1)
+         endif
       endif
       return 
       end

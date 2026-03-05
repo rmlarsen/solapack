@@ -62,15 +62,18 @@ c
 c
 c     External procedures
 c      
-      double precision pdnrm2
-      external pdscal,pdcopy,dkron_matvec,pdnrm2,pdset
+      double precision dnrm2
+      integer i
+      external dscal,dcopy,dkron_matvec,dnrm2
 c     
 c     Compute kernel integrals
 c     *** STEP 2.2 ***
 c     
       write(6,*) 'Computing kernel integrals'
       
-      call pdset(N_points,1d0,work,1)
+      do i=1,N_points
+         work(i) = 1d0
+      enddo
       call dkron_matvec('n','y',1D0,work,0D0,hhvec(3))
 
       hhvec(1)=0D0
@@ -80,7 +83,7 @@ c     Construct householder reflector
 c
       write(6,*) 'Constructing householder reflector'
       
-      alpha = pdnrm2(M_kers,hhvec(3),1)
+      alpha = dnrm2(M_kers,hhvec(3),1)
       if (alpha.eq.0d0) stop 'Integrals of kernels are all zero!?'
       hhvec(2) = 1d0/(alpha*(alpha+dabs(hhvec(3))))
       hhvec(1) = -dsign(alpha,hhvec(3))
@@ -93,13 +96,16 @@ c
 c            alpha*h_1 = alpha * ( e_1 - tau * v(1) * v)
 c
       dtmp = -hhvec(2)*hhvec(3)/hhvec(1)
-      call pdaxpby(M_kers,dtmp,hhvec(3),1,0d0,work,1)
+      call dcopy(M_kers,hhvec(3),1,work,1)
+      call dscal(M_kers,dtmp,work,1)
       work(1) = work(1)+alpha
 c
 c     Compute akh1 = alpha * W^(1/2) * K * h1
 c
       call dkron_matvec('t','y',1D0,work,0D0,akh1)
-      call pdaxty(N_points,1d0,invsqrtw,1,akh1,1)
+      do i=1,N_points
+         akh1(i) = invsqrtw(i)*akh1(i)
+      enddo
       end
 c     
 c***************************************************************
@@ -570,9 +576,9 @@ c
 c
 c     External subroutines called
 c      
-      double precision pddot
+      double precision ddot
       logical lsame
-      external lsame,dkron_matvec,pddot
+      external lsame,dkron_matvec,ddot
 c
 c     Check that dimensions are correct
 c
@@ -591,7 +597,7 @@ c
 c
 c     Apply Householder reflector to vector directly without calling app_hh.
 c
-         a = hhvec(2)*pddot(M_kers-1,x,1,hhvec(4),1)
+         a = hhvec(2)*ddot(M_kers-1,x,1,hhvec(4),1)
          work(tmp)=-a*hhvec(3)
          do i=1,M_kers-1
             work(tmp+i) = x(i)-a*hhvec(3+i)
@@ -620,7 +626,7 @@ c     tmp1 = alpha * Kt^T * W^(1/2) * x
 c
 c     Apply Householder reflector to vector directly without calling app_hh.
 c
-         a = hhvec(2)*pddot(M_kers,work(tmp1),1,hhvec(3),1)
+         a = hhvec(2)*ddot(M_kers,work(tmp1),1,hhvec(3),1)
          if (beta.eq.0D0) then
             do i=1,M_kers-1
                y(i) = work(tmp1+i)-a*hhvec(3+i)
