@@ -449,15 +449,15 @@ c
             enddo
          enddo
          if (first.eq.1) then
-            call c_writeavker(ibyteswap,num,N_targets,icase,
-     c           trdoff(first), targetparms(first,1), maxtargets, 
-     c           rot(first), sigma_rot(first),depart(first), work, 
-     c           N_targets, fcorr)
+            call writeavker(ifcorr,fcorr,num,N_targets,icase,
+     c           trdoff(first), targetparms(first,1), maxtargets,
+     c           rot(first), sigma_rot(first),depart(first), work,
+     c           N_targets)
          else
-            call c_appendavker(ibyteswap,num,N_targets,icase,
-     c           trdoff(first), targetparms(first,1), maxtargets, 
-     c           rot(first), sigma_rot(first),depart(first), work, 
-     c           N_targets, fcorr)
+            call appendavker(ifcorr,fcorr,num,N_targets,icase,
+     c           trdoff(first), targetparms(first,1), maxtargets,
+     c           rot(first), sigma_rot(first),depart(first), work,
+     c           N_targets)
          endif
          first = first+blocksize
       enddo
@@ -523,15 +523,13 @@ c
 c     Write result to disk:
 c         
          if (first .eq. 1) then
-            call c_writeavker(ibyteswap,num,M_kers,icase,
-     c           trdoff(first), targetparms(first,1), maxtargets, 
-     c           rot(first), sigma_rot(first), depart, work, M_kers, 
-     c           fcoeff)
+            call writeavker(ifcoeff,fcoeff,num,M_kers,icase,
+     c           trdoff(first), targetparms(first,1), maxtargets,
+     c           rot(first), sigma_rot(first), depart, work, M_kers)
          else
-            call c_appendavker(ibyteswap,num,M_kers,icase,
-     c           trdoff(first), targetparms(first,1), maxtargets, 
-     c           rot(first), sigma_rot(first), depart, work, M_kers, 
-     c           fcoeff)
+            call appendavker(ifcoeff,fcoeff,num,M_kers,icase,
+     c           trdoff(first), targetparms(first,1), maxtargets,
+     c           rot(first), sigma_rot(first), depart, work, M_kers)
          endif
          first = first+blksz
       enddo

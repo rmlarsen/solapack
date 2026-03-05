@@ -81,13 +81,13 @@ c
       double precision invsigma_nl(maxmodes),invsigma_lm(maxlm)
       double precision chol_sigma(maxexp,maxexp,maxmodes)
       integer icovar, inl(maxnlm),ilm(maxnlm), ilblock(10*maxl)
-      integer nlblocks,inblock(maxnlm), nnblocks,ibyteswap
+      integer nlblocks,inblock(maxnlm), nnblocks
       integer iblock(2*maxl,10*maxl),nblocks(10*maxl)
 
       common/cfg/invsigma_nl,invsigma_lm,Dw,rmesh,tmesh,modeset,rthetw,
      c     hhvec,invsqrtw,chol_sigma,invsigma_split,f1,f2,g1,g2,ilm,
      c     inl,iblock,nblocks,inblock,nnblocks,ilblock,nlblocks
-      common/comctrl/icovar,ibyteswap
+      common/comctrl/icovar
 c     
 c     Common workspace.
 c      

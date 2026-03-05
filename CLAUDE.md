@@ -46,7 +46,7 @@ Programs read parameters from stdin. The `get-config` script strips `#`-comment 
 
 ### Shared code (`solapack_common` OBJECT library)
 
-I/O (`2dolaIO.f`, `byteswapIO.c`), target functions (`target.f`), averaging kernels (`avker.f`), covariance (`covariance.f`), BLAS helpers (`parblas.f`, `dgemm_ovwr.f`), disk allocation (`diskmalloc.c`), timing (`timer.c`), and error handling (`xerbla.f`).
+I/O (`2dolaIO.f`, `solaIO.f`), target functions (`target.f`), averaging kernels (`avker.f`), covariance (`covariance.f`), BLAS helpers (`dgemm_ovwr.f`), disk allocation (`diskmalloc.c`), timing (`timer.c`), and error handling (`xerbla.f`).
 
 ### `linpack/` — Static library
 
@@ -54,7 +54,7 @@ Bundled LINPACK routines (LU and Cholesky factorization/solve) used by both exec
 
 ### Data files
 
-`modeldata/` contains little-endian binary eigenfunction and solar model files. Byte-swapping for big-endian is controlled by `ibyteswap` in config files.
+`modeldata/` contains native binary eigenfunction and solar model files. All kernel and mesh data is in double precision.
 
 ### Configuration
 

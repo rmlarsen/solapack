@@ -12,15 +12,15 @@ c     procedure to set up the A matrices
       integer lker(maxnlm),nker(maxnlm),mker(maxnlm)
       integer itker(maxnlm),it1ker(maxnlm),npoints
       character*80 cfile, afile
-      real rpoints(*),tpoints(*)
-      real weights(*)
+      double precision rpoints(*),tpoints(*)
+      double precision weights(*)
 
       double precision tmesh1(maxt1),tweights(maxt1)
       double precision rmesh1(maxr1),rweights(maxr1)
       character*80 cefunc
       real dummy(2),dtime,etime,time1
-      real f1(maxmodes,maxr1),f2(maxmodes,maxr1)
-      real g1(maxlm,maxt1),g2(maxlm,maxt1)
+      double precision f1(maxmodes,maxr1),f2(maxmodes,maxr1)
+      double precision g1(maxlm,maxt1),g2(maxlm,maxt1)
       integer nnlm1(maxnlm),llist(maxnlm)
       logical found
       integer ijk(maxr1,maxt1)
