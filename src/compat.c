@@ -8,10 +8,13 @@
 #include <sys/times.h>
 #include <unistd.h>
 
+/* Maximum value returned by random() (2^31 - 1 on POSIX systems). */
+#define RANDOM_MAX 2147483647L
+
 /* g77's rand() returned a double precision random number in [0,1). */
 double rand_(void)
 {
-    return (double)random() / (double)RAND_MAX;
+    return (double)random() / (double)RANDOM_MAX;
 }
 
 /* g77's dtime(tarray) returned elapsed CPU time since last call and

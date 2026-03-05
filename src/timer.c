@@ -3,23 +3,19 @@
 #include "timer.h"
 #include <stdio.h>
 #include <sys/time.h>
-#define N 100
 
-static struct timeval first[N],second[N];
+#define MAX_TIMERS 100
+#define USEC_PER_SEC 1000000
 
-static struct timezone tzp[N];
+static struct timeval first[MAX_TIMERS], second[MAX_TIMERS];
 static int nexttimer = 1;
-
-
-
-
 
 /* Wall clock timer routines */
 int GetNewTimer(void)
 {
   int new;
   new = nexttimer;
-  nexttimer = (nexttimer % N)+1;
+  nexttimer = (nexttimer % MAX_TIMERS) + 1;
   return new;
 }
 
@@ -33,32 +29,32 @@ int StartNewTimer(void)
 
 void StartTimer(int n)
 {
-  if (n<1 || n > N) 
-    fprintf(stderr,"StartTimer: Timer number should be between 1 and %d\n",N);
+  if (n < 1 || n > MAX_TIMERS)
+    fprintf(stderr, "StartTimer: Timer number should be between 1 and %d\n", MAX_TIMERS);
   else {
-    n = n-1; 
-    gettimeofday (&first[n], &tzp[n]);
+    n = n - 1;  /* Convert from 1-based (Fortran) to 0-based (C) index */
+    gettimeofday(&first[n], NULL);
   }
 }
 
 float StopTimer(int n)
 {
-  if (n<1 || n > N) {
-    fprintf(stderr,"StopTimer: Timer number should be between 1 and %d\n",N);
+  if (n < 1 || n > MAX_TIMERS) {
+    fprintf(stderr, "StopTimer: Timer number should be between 1 and %d\n", MAX_TIMERS);
     return 0.0f;
   }
-  n = n-1;
-  gettimeofday (&second[n], &tzp[n]);
+  n = n - 1;  /* Convert from 1-based (Fortran) to 0-based (C) index */
+  gettimeofday(&second[n], NULL);
   if (first[n].tv_usec > second[n].tv_usec) {
-    second[n].tv_usec += 1000000;
+    second[n].tv_usec += USEC_PER_SEC;
     second[n].tv_sec--;
   }
-  return (float) (second[n].tv_sec-first[n].tv_sec) +
-    (float) (second[n].tv_usec-first[n].tv_usec)/1000000.0;
+  return (float)(second[n].tv_sec - first[n].tv_sec) +
+    (float)(second[n].tv_usec - first[n].tv_usec) / (float)USEC_PER_SEC;
 }
 
 
-/* FORTRAN Interface routines: */
+/* Fortran interface routines (1-based timer indices): */
 void starttimer_(int *n)
 {
   StartTimer(*n);
@@ -78,4 +74,3 @@ void getnewtimer_(int *n)
 {
   *n = GetNewTimer();
 }
-

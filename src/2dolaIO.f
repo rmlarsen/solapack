@@ -26,7 +26,7 @@ c
 
       t0 = rthetw(1,2)
       i = 2
-      do while (.not.rthetw(i,2).eq.t0)
+      do while (rthetw(i,2).ne.t0)
          i = i+1
       enddo
       N_theta = i-1
