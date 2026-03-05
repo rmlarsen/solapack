@@ -14,7 +14,6 @@
 
 
 static memblock_t *head = NULL;
-extern int errno;
 
 void *safemalloc(size_t size)
 {
@@ -22,10 +21,10 @@ void *safemalloc(size_t size)
   char errmsg[64];
 
   if ( (p = (void *) malloc(size)) == NULL) {
-    sprintf(errmsg,"Malloc failed with size = %d",size);
+    sprintf(errmsg,"Malloc failed with size = %zu",size);
     perror(errmsg);
     exit(1);
-  }  
+  }
   return p;
 }
 
@@ -35,7 +34,7 @@ void *safevalloc(size_t size)
   char errmsg[64];
 
   if ( (p = (void *) valloc(size)) == NULL) {
-    sprintf(errmsg,"Malloc failed with size = %d",size);
+    sprintf(errmsg,"Malloc failed with size = %zu",size);
     perror(errmsg);
     exit(1);
   }  
@@ -64,9 +63,8 @@ void *diskmalloc(int size, char *prefix)
  
 
 
-  /* Create a file the requires size */
-  mktemp(name);
-  fildes = open(name, O_RDWR | O_CREAT | O_TRUNC | O_EXCL, S_IRUSR | S_IWUSR); 
+  /* Create a file of the required size */
+  fildes = mkstemp(name);
 
   if (fildes == -1) {
     sprintf(errmsg,"Could not open file %s",name);

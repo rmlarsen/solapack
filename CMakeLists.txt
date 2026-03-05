@@ -12,6 +12,22 @@ include(GNUInstallDirs)
 option(SOLAPACK_USE_RISC_MGS
   "Use RISC-optimized Modified Gram-Schmidt (instead of Pentium version)" OFF)
 
+# Compiler warnings
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wall>)
+endif()
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+  # Fortran 77 codebase: suppress warnings for intentional idioms
+  add_compile_options(
+    $<$<COMPILE_LANGUAGE:Fortran>:-Wall>
+    $<$<COMPILE_LANGUAGE:Fortran>:-Wno-conversion>
+    $<$<COMPILE_LANGUAGE:Fortran>:-Wno-surprising>
+    $<$<COMPILE_LANGUAGE:Fortran>:-Wno-unused-dummy-argument>
+    $<$<COMPILE_LANGUAGE:Fortran>:-std=legacy>
+    $<$<COMPILE_LANGUAGE:Fortran>:-fno-automatic>
+  )
+endif()
+
 # Find LAPACK (also provides BLAS)
 find_package(LAPACK REQUIRED)
 
@@ -74,6 +90,17 @@ add_executable(2dsola
 )
 target_include_directories(2dsola PRIVATE src)
 target_link_libraries(2dsola PRIVATE linpack ${LAPACK_LIBRARIES})
+
+# --- Tests ---
+enable_testing()
+add_test(
+  NAME small_test
+  COMMAND ${CMAKE_SOURCE_DIR}/test/run_small_test.sh
+          ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(small_test PROPERTIES
+  TIMEOUT 120
+)
 
 # --- Install rules ---
 install(TARGETS set-2drls 2dsola

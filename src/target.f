@@ -769,7 +769,7 @@ c
 c     cubic interpolation/extrapolation
 c     
 c     pivotal point (m) and point (k) closest to z
- 10      m=n
+         m=n
          k=3
          if(n.gt.1+ir) go to 11
          m=1+ir+ir
@@ -790,20 +790,20 @@ c
          z3=z-y3
          z4=z-y4
 c     
- 13      z12=z1*z2
+         z12=z1*z2
          z34=z3*z4
 c     
- 14      a(1)=z2*z34/((y1-y2)*(y1-y3)*(y1-y4))
+         a(1)=z2*z34/((y1-y2)*(y1-y3)*(y1-y4))
          a(2)=z1*z34/((y2-y1)*(y2-y3)*(y2-y4))
          a(3)=z12*z4/((y3-y1)*(y3-y2)*(y3-y4))
          a(4)=z12*z3/((y4-y1)*(y4-y2)*(y4-y3))
 c     
 c     correct a(k)
- 15      diff=a(1)+a(2)+a(3)+a(4)
+         diff=a(1)+a(2)+a(3)+a(4)
          a(k)=(1.d0+a(k))-diff
 c     
 c     compute y
- 16      m=(m-1)/ir-3
+         m=(m-1)/ir-3
          m=m*ird
          do 18 i=1,iir
             k=i+m
