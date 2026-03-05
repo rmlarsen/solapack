@@ -9,9 +9,6 @@ project(solapack
 include(GNUInstallDirs)
 
 # Options
-option(SOLAPACK_USE_RISC_MGS
-  "Use RISC-optimized Modified Gram-Schmidt (instead of Pentium version)" OFF)
-
 # Compiler warnings
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
   add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wall>)
@@ -28,8 +25,18 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   )
 endif()
 
-# Find LAPACK (also provides BLAS)
-find_package(LAPACK REQUIRED)
+# Find LAPACK (also provides BLAS).
+# Prefer OpenBLAS if available, otherwise fall back to any LAPACK.
+if(NOT BLA_VENDOR)
+  set(BLA_VENDOR OpenBLAS)
+  find_package(LAPACK QUIET)
+  if(NOT LAPACK_FOUND)
+    unset(BLA_VENDOR)
+    find_package(LAPACK REQUIRED)
+  endif()
+else()
+  find_package(LAPACK REQUIRED)
+endif()
 
 # --- Linpack static library ---
 add_library(linpack STATIC
@@ -47,7 +54,6 @@ add_library(solapack_common OBJECT
   src/timer.c
   src/dgemm_ovwr.f
   src/byteswapIO.c
-  src/parblas.f
   src/diskmalloc.c
   src/xerbla.f
   src/2dolaIO.f
@@ -73,19 +79,13 @@ target_include_directories(set-2drls PRIVATE src)
 target_link_libraries(set-2drls PRIVATE linpack ${LAPACK_LIBRARIES})
 
 # --- 2D SOLA inversion executable: 2dsola ---
-if(SOLAPACK_USE_RISC_MGS)
-  set(MGS_SOURCE src/mgs.risc.f)
-else()
-  set(MGS_SOURCE src/mgs.pentium.f)
-endif()
-
 add_executable(2dsola
   src/2dsola.lanczos.c
   src/2dsola.main.lanczos.f
   src/2dsola.sub.lanczos.f
   src/dlanc_b.f
   src/dkronecker2.f
-  ${MGS_SOURCE}
+  src/mgs.f
   $<TARGET_OBJECTS:solapack_common>
 )
 target_include_directories(2dsola PRIVATE src)
