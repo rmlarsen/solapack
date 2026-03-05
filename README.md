@@ -6,7 +6,7 @@ symmetric component of the 2-D solar rotation rate from measured rotational
 frequency splittings of the eigenmodes of global solar oscillation.
 
 **Authors:** Rasmus Munk Larsen (Stanford University), Jesper Schou
-(Stanford University) & Jorgen Christensen-Dalsgaard (Aarhus University).
+(Stanford University) & Jørgen Christensen-Dalsgaard (Århus University).
 
 **Version:** 1.0, August 2003
 
