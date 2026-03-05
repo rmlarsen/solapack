@@ -150,7 +150,7 @@ void diskfree(void *p)
 
 void *diskmalloc_(size_t *size)
 {
-  return diskmalloc(*size,NULL);
+  return diskmalloc(*size,"fortran.");
 }
 
 void diskfree_(void **p)

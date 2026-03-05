@@ -153,11 +153,11 @@ c
                      s = 1.0/t1
                      c = s*t
                   else
-                     t = -gamma/lambda 
+                     t = -gamma/lambda
                      t1 = dsqrt(1.0+t**2)
                      lam = lambda*t1
                      c = 1.0/t1
-                     s = c*t1
+                     s = c*t
                   endif
                endif
 c

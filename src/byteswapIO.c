@@ -33,7 +33,7 @@ static inline size_t fread_unchecked(void *p, size_t sz, size_t n, FILE *f)
 #define SWAPN(a,n) { int __tmp; char *__ptr; int __i; \
                     __ptr = (char *) &(a); \
                      for(__i=0;__i<((n)/2);__i++) \
-                       __SWAP(__ptr[__i],__ptr[(n)-__i],__tmp); }
+                       __SWAP(__ptr[__i],__ptr[(n)-1-__i],__tmp); }
 #define SWAPINT(a)    SWAP4((a))
 #define SWAPFLOAT(a)  SWAP4((a))
 #define SWAPDOUBLE(a) SWAP8((a))
@@ -123,14 +123,12 @@ char *f2c_string(char *s, int len)
     printf("f2c_string called with len<=0.\n");
     exit(-1);
   }
-  buf = (char *) malloc(len); 
+  buf = (char *) malloc(len+1);
   memcpy(buf, s, len);
+  buf[len] = '\0';
   i=0;
   while(i<len && isgraph(buf[i])) i++;
-  if (i >= len ) 
-    buf[len-1] = '\0'; /* Probably scrambles name but try anyhow.. */
-  else
-    buf[i] = '\0';
+  buf[i] = '\0';
   return buf;
 }
 
@@ -219,11 +217,11 @@ void C_readfg(FILE *fh, int *precision, int *byteswap, double f1[],
   /**** Begin record ****/
   READINT(dummy);   /* Read record marker */
   READINT(*M_kers);
-  if (*N_points > MAXNLM) {
+  if (*M_kers > MAXNLM) {
     fprintf(stderr,"Too many modes, MAXNLM = %d.\n ",MAXNLM);
     exit(-1);
   }
-  READINT(*N_points); 
+  READINT(*N_points);
   if (*N_points > MAXPTS) {
     fprintf(stderr,"Too many meshpoints, MAXPTS = %d.\n ",MAXPTS);
     exit(-1);
@@ -268,8 +266,8 @@ void C_readfg(FILE *fh, int *precision, int *byteswap, double f1[],
     free(buf);
   }
   else {
-    for (j=0; j<*M_nl; j++) 
-      READFLOATS(&f1[j*(*ldf)],*N_rad);
+    for (j=0; j<*M_nl; j++)
+      READDOUBLES(&f1[j*(*ldf)],*N_rad);
   }
   READINT(dummy);   /* Read record marker */
   /**** End record ****/
@@ -279,14 +277,14 @@ void C_readfg(FILE *fh, int *precision, int *byteswap, double f1[],
   if (*precision==SINGLE) {
     buf = (float *)valloc((*N_rad)*(*M_nl)*sizeof(float));
     READFLOATS(buf,(*N_rad)*(*M_nl));
-    for (j=0; j<*M_nl; j++) 
-      for (i=0; i<*N_rad; i++) 
+    for (j=0; j<*M_nl; j++)
+      for (i=0; i<*N_rad; i++)
 	f2[j*(*ldf) + i] = (double) buf[j * (*N_rad) + i];
     free(buf);
   }
   else {
-    for (j=0; j<*M_nl; j++) 
-      READFLOATS(&f2[j*(*ldf)],*N_rad);
+    for (j=0; j<*M_nl; j++)
+      READDOUBLES(&f2[j*(*ldf)],*N_rad);
   }
   READINT(dummy);   /* Read record marker */
   /**** End record ****/
@@ -318,8 +316,8 @@ void C_readfg(FILE *fh, int *precision, int *byteswap, double f1[],
     free(buf);
   }
   else {
-    for (j=0; j<*M_lm; j++) 
-      READFLOATS(&g1[j*(*ldg)],*N_theta);
+    for (j=0; j<*M_lm; j++)
+      READDOUBLES(&g1[j*(*ldg)],*N_theta);
   }
   READINT(dummy);   /* Read record marker */
   /**** End record ****/
@@ -329,14 +327,14 @@ void C_readfg(FILE *fh, int *precision, int *byteswap, double f1[],
   if (*precision==SINGLE) {
     buf = (float *)valloc((*N_theta)*(*M_lm)*sizeof(float));
     READFLOATS(buf,(*N_theta)*(*M_lm));
-    for (j=0; j<*M_lm; j++) 
-      for (i=0; i<*N_theta; i++) 
+    for (j=0; j<*M_lm; j++)
+      for (i=0; i<*N_theta; i++)
 	g2[j*(*ldg) + i] = (double) buf[j * (*N_theta) + i];
     free(buf);
   }
   else {
-    for (j=0; j<*M_lm; j++) 
-      READFLOATS(&g2[j*(*ldg)],*N_theta);
+    for (j=0; j<*M_lm; j++)
+      READDOUBLES(&g2[j*(*ldg)],*N_theta);
   }
   READINT(dummy);   /* Read record marker */
   /**** End record ****/
